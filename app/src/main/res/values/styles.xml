@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Original theme -->
+    <style name="Theme.USTHGitHubClient" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+
+    <!-- Callback Activity's theme (transparent theme) -->
+    <style name="Theme.Transparent.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+    </style>
+</resources>
