@@ -6,9 +6,10 @@ plugins {
 
 android {
     namespace = "com.usth.githubclient"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
+        manifestPlaceholders["appAuthRedirectScheme"] = "usthgit"
         applicationId = "com.usth.githubclient"
         minSdk = 24
         targetSdk = 34
@@ -36,28 +37,43 @@ android {
 
 dependencies {
     // Core & UI
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.fragment:fragment:1.6.2")
+    implementation(libs.appcompat.v161)
+    implementation(libs.material.v1110)
+    implementation(libs.constraintlayout.v214)
+    implementation(libs.fragment)
 
     // ViewModel & LiveData for MVVM
-    implementation("androidx.lifecycle:lifecycle-viewmodel:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-livedata:2.7.0")
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.livedata)
 
     // Networking with Retrofit & OkHttp
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
 
     // Image Loading with Glide
-    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.glide)
 
     // Markdown Renderer
-    implementation("org.markdownj:markdownj-core:0.4")
+    implementation(libs.markdownj.core)
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
 
     // Testing
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core.v351)
+
+    // AppAuth for authentication
+    implementation(libs.appauth)
+
+    // Browser display??
+    implementation(libs.browser)
+
+    // Ensure UX (user experience)
+    implementation(libs.lifecycle.viewmodel.v284)
+
+    // Enable fragment and activity to get data
+    implementation(libs.lifecycle.livedata.v284)
+
 }

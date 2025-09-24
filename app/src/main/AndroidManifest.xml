@@ -10,15 +10,12 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/ic_launcher_background"
         android:supportsRtl="true"
         android:theme="@style/Theme.USTHGitHubClient"
         tools:targetApi="31" >
-        <activity
-            android:name=".AuthCallbackActivity"
-            android:exported="false"
-            android:theme="@style/Theme.USTHGitHubClient" />
-        <!-- Activity receive redirect from browser -->
+
+        <!-- Activity receives redirect from browser (callback, no UI) -->
         <activity
             android:name=".auth.AuthCallbackActivity"
             android:exported="true"
@@ -27,30 +24,31 @@
             android:theme="@style/Theme.Transparent.NoActionBar" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <!-- Match 100% with redirect URL that confirmed on GitHub: {scheme}://{host}/callback -->
                 <data
                     android:host="@string/oauth_redirect_host"
-                    android:path="/callback"
-                    android:scheme="@string/oauth_redirect_scheme" />
+                    android:scheme="@string/oauth_redirect_scheme"
+                    android:path="/callback"/>
             </intent-filter>
-        </activity> <!-- Authentication main display (observe ViewModel, render UI) -->
+        </activity>
+
+        <!-- Authentication main display and also the LAUNCHER (observe ViewModel, render UI) -->
         <activity
             android:name=".activities.AuthenticationActivity"
             android:exported="true"
-            android:launchMode="singleTop" /> <!-- Launcher -->
-        <activity
-            android:name=".activities.MainActivity"
-            android:exported="true" >
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <!-- Display after Authentication -->
+        <activity
+            android:name=".activities.MainActivity"
+            android:exported="true">
+        </activity>
+    </application>
 </manifest>
