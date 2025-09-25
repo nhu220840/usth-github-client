@@ -58,6 +58,13 @@ public class AuthenticationActivity extends AppCompatActivity {
                     btnSignOut.setVisibility(View.VISIBLE);
                     txtStatus.setVisibility(View.VISIBLE);
                     txtStatus.setText("Welcome, " + (state.username != null ? state.username : "user") + "!");
+
+                    // Redirect to MainActivity() and close AuthenticationActivity()
+                    startActivity(
+                            new Intent(this, MainActivity.class)
+                                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK)
+                    );
+                    finish(); // no return to sign in display when click "Back"
                     break;
                 case ERROR:
                     progress.setVisibility(View.GONE);

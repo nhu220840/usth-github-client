@@ -152,12 +152,12 @@ public class AuthViewModel extends AndroidViewModel {
         new Thread(() -> {
             HttpURLConnection conn = null;
             try {
-                URL url = new URL("https://api.github.com.user");
+                URL url = new URL("https://api.github.com/user");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setRequestProperty("Authorization", "Bearer " + token);      // Bearer token (OAuth)
                 conn.setRequestProperty("Accept", "application/vnd.github+json"); // Recommend present REST
-                conn.setRequestProperty("User-Agen", "usth-github-client");
+                conn.setRequestProperty("User-Agent", "usth-github-client");
 
                 int code = conn.getResponseCode();
                 if (code == 200) {
@@ -168,7 +168,7 @@ public class AuthViewModel extends AndroidViewModel {
                     String login = json.optString("login", null);
                     cb.onSuccess(login);
                 } else {
-                    cb.onError("HTTP " + code + " when calling / user");
+                    cb.onError("HTTP " + code + " when calling /user");
                 }
             } catch (Exception e) {
                 cb.onError(e.getMessage());

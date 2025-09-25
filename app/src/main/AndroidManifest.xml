@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" >
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.usth.githubclient">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -13,11 +14,22 @@
         android:roundIcon="@drawable/ic_launcher_background"
         android:supportsRtl="true"
         android:theme="@style/Theme.USTHGitHubClient"
-        tools:targetApi="31" >
+        tools:targetApi="33" >
+
+        <!-- Authentication main display and also the LAUNCHER (observe ViewModel, render UI) -->
+        <activity
+            android:name="com.usth.githubclient.activities.AuthenticationActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <!-- Activity receives redirect from browser (callback, no UI) -->
         <activity
-            android:name=".auth.AuthCallbackActivity"
+            android:name="com.usth.githubclient.auth.AuthCallbackActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:taskAffinity=""
@@ -28,26 +40,15 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <!-- Match 100% with redirect URL that confirmed on GitHub: {scheme}://{host}/callback -->
                 <data
-                    android:host="@string/oauth_redirect_host"
                     android:scheme="@string/oauth_redirect_scheme"
+                    android:host="@string/oauth_redirect_host"
                     android:path="/callback"/>
-            </intent-filter>
-        </activity>
-
-        <!-- Authentication main display and also the LAUNCHER (observe ViewModel, render UI) -->
-        <activity
-            android:name=".activities.AuthenticationActivity"
-            android:exported="true"
-            android:launchMode="singleTop">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <!-- Display after Authentication -->
         <activity
-            android:name=".activities.MainActivity"
+            android:name="com.usth.githubclient.activities.MainActivity"
             android:exported="true">
         </activity>
     </application>

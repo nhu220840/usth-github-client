@@ -46,7 +46,7 @@
     <string name="sign_out">Sign out</string>
     <string name="github_auth_endpoint">https://github.com/login/oauth/authorize</string>
     <string name="github_token_endpoint">https://github.com/login/oauth/access_token</string>
-    <string name="github_client_id">github_client_id</string>
+    <string name="github_client_id">Ov23liZB9ixbVh79XMy3</string>
     <string name="oauth_redirect_scheme">usthgit</string>
     <string name="oauth_redirect_host">auth</string>
 </resources>

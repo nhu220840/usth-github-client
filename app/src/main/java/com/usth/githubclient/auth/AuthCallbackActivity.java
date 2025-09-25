@@ -15,7 +15,7 @@ public class AuthCallbackActivity extends Activity {
         // Forward redirect to AuthenticationActivity
         Intent forward = new Intent(this, AuthenticationActivity.class);
         forward.setData(getIntent().getData());
-        forward.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        forward.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(forward);
 
         // End up fast and not keep it in back stack (hien ra va bien mat gan nhu ngay lap tuc)
