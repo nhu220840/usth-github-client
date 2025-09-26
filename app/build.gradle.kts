@@ -2,6 +2,7 @@
 
 plugins {
     id("com.android.application")
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -32,6 +33,9 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
 
 dependencies {
@@ -55,9 +59,26 @@ dependencies {
 
     // Markdown Renderer
     implementation("org.markdownj:markdownj-core:0.4")
+    implementation(libs.core.ktx)
 
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-}
+
+    // AndroidX Lifecycle
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.6")
+
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // Kotlin Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Fragment KTX (cung cấp viewModels() cho Fragment)
+    implementation("androidx.fragment:fragment-ktx:1.7.1")
+    }
+

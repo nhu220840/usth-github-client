@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "name": "USTH-GitHub-Client",
+    "description": "Ứng dụng Android mô phỏng client GitHub",
+    "language": "Kotlin",
+    "stargazers_count": 42,
+    "forks_count": 10
+  },
+  {
+    "id": 2,
+    "name": "SignLanguageRecognizer",
+    "description": "Nhận diện ngôn ngữ ký hiệu bằng AI",
+    "language": "Python",
+    "stargazers_count": 120,
+    "forks_count": 35
+  },
+  {
+    "id": 3,
+    "name": "Cybersecurity-Toolkit",
+    "description": "Bộ công cụ pentest cho sinh viên",
+    "language": "Java",
+    "stargazers_count": 15,
+    "forks_count": 3
+  },
+  {
+    "id": 4,
+    "name": "MachineLearning101",
+    "description": "Tài liệu và ví dụ cơ bản về học máy",
+    "language": "Jupyter Notebook",
+    "stargazers_count": 200,
+    "forks_count": 55
+  },
+  {
+    "id": 5,
+    "name": "MobileECommerceApp",
+    "description": "Ứng dụng thương mại điện tử demo viết bằng Flutter",
+    "language": "Dart",
+    "stargazers_count": 75,
+    "forks_count": 12
+  },
+  {
+    "id": 6,
+    "name": "DataVisualizationLib",
+    "description": "Thư viện vẽ biểu đồ cho Java",
+    "language": "Java",
+    "stargazers_count": 88,
+    "forks_count": 22
+  },
+  {
+    "id": 7,
+    "name": "PortfolioWebsite",
+    "description": "Website cá nhân xây dựng bằng ReactJS",
+    "language": "JavaScript",
+    "stargazers_count": 34,
+    "forks_count": 5
+  },
+  {
+    "id": 8,
+    "name": "WeatherApp",
+    "description": "Ứng dụng dự báo thời tiết sử dụng OpenWeather API",
+    "language": "Kotlin",
+    "stargazers_count": 56,
+    "forks_count": 8
+  },
+  {
+    "id": 9,
+    "name": "BlockchainDemo",
+    "description": "Demo blockchain cơ bản bằng Python",
+    "language": "Python",
+    "stargazers_count": 145,
+    "forks_count": 40
+  },
+  {
+    "id": 10,
+    "name": "ChatApp",
+    "description": "Ứng dụng chat thời gian thực sử dụng WebSocket",
+    "language": "TypeScript",
+    "stargazers_count": 99,
+    "forks_count": 25
+  }
+]
