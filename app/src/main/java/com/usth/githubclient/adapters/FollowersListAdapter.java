@@ -1,114 +1,134 @@
 package com.usth.githubclient.adapters;
 
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.usth.githubclient.R;
-import com.usth.githubclient.databinding.FollowersListItemBinding;
-import com.usth.githubclient.domain.model.GitHubUserProfileDataEntry;
 
-/**
- * Adapter responsible for rendering follower entries inside a RecyclerView.
- */
-public class FollowersListAdapter extends ListAdapter<GitHubUserProfileDataEntry, FollowersListAdapter.FollowerViewHolder> {
+import java.util.ArrayList;
+import java.util.List;
 
-    private static final DiffUtil.ItemCallback<GitHubUserProfileDataEntry> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<GitHubUserProfileDataEntry>() {
-                @Override
-                public boolean areItemsTheSame(@NonNull GitHubUserProfileDataEntry oldItem,
-                                               @NonNull GitHubUserProfileDataEntry newItem) {
-                    return oldItem.getId() == newItem.getId();
-                }
+public class FollowersListAdapter extends RecyclerView.Adapter<FollowersListAdapter.VH> {
 
-                @Override
-                public boolean areContentsTheSame(@NonNull GitHubUserProfileDataEntry oldItem,
-                                                  @NonNull GitHubUserProfileDataEntry newItem) {
-                    // So sánh trực tiếp các đối tượng Optional và sửa tên phương thức
-                    return oldItem.getUsername().equals(newItem.getUsername())
-                            && oldItem.getDisplayName().equals(newItem.getDisplayName())
-                            && oldItem.getBio().equals(newItem.getBio())
-                            && oldItem.getFollowersCount() == newItem.getFollowersCount()
-                            && oldItem.getPublicReposCount() == newItem.getPublicReposCount()
-                            && oldItem.getAvatarUrl().equals(newItem.getAvatarUrl());
-                }
-            };
+    public static class UserRow {
+        public final String login;
+        public final String avatarUrl;
+        public String displayName; // tên thật (có thể null)
+        public String bio;
+        public Integer publicRepos;
+        public Integer followers;
 
-    private final OnFollowerClickListener listener;
 
-    public FollowersListAdapter(@NonNull OnFollowerClickListener listener) {
-        super(DIFF_CALLBACK);
-        this.listener = listener;
-    }
-
-    @NonNull
-    @Override
-    public FollowerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        FollowersListItemBinding binding = FollowersListItemBinding.inflate(inflater, parent, false);
-        return new FollowerViewHolder(binding);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull FollowerViewHolder holder, int position) {
-        holder.bind(getItem(position));
-    }
-
-    class FollowerViewHolder extends RecyclerView.ViewHolder {
-
-        private final FollowersListItemBinding binding;
-
-        FollowerViewHolder(@NonNull FollowersListItemBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
+        public UserRow(String login, String avatarUrl) {
+            this.login = login;
+            this.avatarUrl = avatarUrl;
         }
+    }
 
-        void bind(GitHubUserProfileDataEntry follower) {
-            // Sử dụng orElse để lấy giá trị từ Optional, nếu không có thì dùng username
-            String displayName = follower.getDisplayName().orElse(follower.getUsername());
-            binding.displayName.setText(displayName);
-            binding.username.setText(itemView.getResources()
-                    .getString(R.string.followers_username_format, follower.getUsername()));
+    private final List<UserRow> items = new ArrayList<>();
 
-            // Lấy giá trị từ Optional và kiểm tra
-            String bioText = follower.getBio().orElse(null);
-            if (TextUtils.isEmpty(bioText)) {
-                binding.bio.setVisibility(View.GONE);
-                binding.bio.setText(null);
-            } else {
-                binding.bio.setVisibility(View.VISIBLE);
-                binding.bio.setText(bioText);
+    public void submit(List<UserRow> newItems) {
+        items.clear();
+        if (newItems != null) items.addAll(newItems);
+        notifyDataSetChanged();
+    }
+
+    public void updateDetails(String login, String displayName, String bio, Integer publicRepos, Integer followers) {
+        for (int i = 0; i < items.size(); i++) {
+            UserRow r = items.get(i);
+            if (r.login.equalsIgnoreCase(login)) {
+                boolean changed = false;
+                if ((displayName != null && !displayName.equals(r.displayName)) ||
+                        (displayName == null && r.displayName != null)) {
+                    r.displayName = displayName;
+                    changed = true;
+                }
+                if ((bio != null && !bio.equals(r.bio)) || (bio == null && r.bio != null)) {
+                    r.bio = bio;
+                    changed = true;
+                }
+                if ((publicRepos != null && !publicRepos.equals(r.publicRepos)) ||
+                        (publicRepos == null && r.publicRepos != null)) {
+                    r.publicRepos = publicRepos;
+                    changed = true;
+                }
+                if ((followers != null && !followers.equals(r.followers)) ||
+                        (followers == null && r.followers != null)) {
+                    r.followers = followers;
+                    changed = true;
+                }
+
+                if (changed) {
+                    notifyItemChanged(i);
+                }
+                break;
             }
-
-            // Sửa lại tên phương thức cho chính xác
-            binding.stats.setText(itemView.getResources().getString(
-                    R.string.followers_stats_format,
-                    follower.getPublicReposCount(),
-                    follower.getFollowersCount()));
-
-            // Lấy URL từ Optional trước khi truyền vào Glide
-            Glide.with(binding.avatar)
-                    .load(follower.getAvatarUrl().orElse(null))
-                    .placeholder(R.drawable.ic_avatar_placeholder)
-                    .error(R.drawable.ic_avatar_placeholder)
-                    .circleCrop()
-                    .into(binding.avatar);
-
-            itemView.setOnClickListener(v -> listener.onFollowerClicked(follower));
         }
     }
 
-    /**
-     * Callback invoked when a follower item is tapped.
-     */
-    public interface OnFollowerClickListener {
-        void onFollowerClicked(@NonNull GitHubUserProfileDataEntry follower);
+    @NonNull @Override
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.followers_list_item, parent, false);
+        return new VH(v);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull VH h, int position) {
+        UserRow row = items.get(position);
+
+        String displayName = (row.displayName != null && !row.displayName.trim().isEmpty())
+                ? row.displayName
+                : row.login;
+        h.displayName.setText(displayName);
+        h.displayName.setVisibility(View.VISIBLE);
+
+        h.username.setText("@" + row.login);
+
+        if (row.bio != null && !row.bio.trim().isEmpty()) {
+            h.bio.setVisibility(View.VISIBLE);
+            h.bio.setText(row.bio);
+        } else {
+            h.bio.setVisibility(View.GONE);
+        }
+
+        if (row.publicRepos != null && row.followers != null) {
+            String stats = row.publicRepos + " repositories · " + row.followers + " followers";
+            h.stats.setVisibility(View.VISIBLE);
+            h.stats.setText(stats);
+        } else {
+            h.stats.setVisibility(View.GONE);
+        }
+
+        Glide.with(h.avatar.getContext())
+                .load(row.avatarUrl)
+                .placeholder(R.drawable.ic_person_placeholder)
+                .into(h.avatar);
+    }
+
+    @Override
+    public int getItemCount() { return items.size(); }
+
+    static class VH extends RecyclerView.ViewHolder {
+        ImageView avatar;
+        TextView displayName;
+        TextView username;
+        TextView bio;
+        TextView stats;        VH(@NonNull View itemView) {
+            super(itemView);
+            avatar = itemView.findViewById(R.id.avatar);
+            avatar      = itemView.findViewById(R.id.avatar);
+            displayName = itemView.findViewById(R.id.display_name);
+            username    = itemView.findViewById(R.id.username);
+            bio         = itemView.findViewById(R.id.bio);
+            stats       = itemView.findViewById(R.id.stats);
+        }
     }
 }

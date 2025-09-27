@@ -1,7 +1,6 @@
 package com.usth.githubclient.di;
 
 import com.usth.githubclient.data.remote.ApiClient;
-import com.usth.githubclient.data.remote.GithubApiService;
 import com.usth.githubclient.data.repository.AuthRepository;
 import com.usth.githubclient.domain.mapper.RepoMapper;
 import com.usth.githubclient.domain.mapper.UserMapper;
@@ -17,6 +16,7 @@ public final class ServiceLocator {
     private final UserMapper userMapper;
     private final RepoMapper repoMapper;
     private final AuthRepository authRepository;
+
 
     private ServiceLocator() {
         userMapper = new UserMapper();

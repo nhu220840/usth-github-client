@@ -1,6 +1,7 @@
 package com.usth.githubclient.data.remote;
 
 import com.usth.githubclient.data.remote.dto.RepoDto;
+import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
 import java.util.List;
 import retrofit2.Call;
@@ -53,4 +54,10 @@ public interface GithubApiService {
             @Query("page") int page,
             @Query("sort") String sort
     );
-}
+
+    @GET("search/users")
+    Call<SearchUsersResponseDto> searchUsers(
+            @Query("q") String query,
+            @Query("page") int page,
+            @Query("per_page") int perPage
+    );}
