@@ -1,7 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.USTHGitHubClient" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:statusBarColor" tools:targetApi="l">#000000</item>
 
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>

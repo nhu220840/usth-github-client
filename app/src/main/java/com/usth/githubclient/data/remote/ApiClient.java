@@ -12,7 +12,6 @@ public class ApiClient {
     private static Retrofit retrofit = null;
     private static String authToken = null;
 
-    // ... (Các phương thức getClient() và setAuthToken() giữ nguyên) ...
     public static Retrofit getClient() {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -21,7 +20,9 @@ public class ApiClient {
         httpClient.addInterceptor(logging);
         httpClient.addInterceptor(chain -> {
             Request original = chain.request();
-            Request.Builder requestBuilder = original.newBuilder();
+            Request.Builder requestBuilder = original.newBuilder()
+                    .header("Accept", "application/vnd.github+json")
+                    .header("User-Agent", "usth-github-client");
             if (authToken != null && !authToken.isEmpty()) {
                 requestBuilder.header("Authorization", "Bearer " + authToken);
             }
@@ -65,6 +66,8 @@ public class ApiClient {
         httpClient.addInterceptor(chain -> {
             Request original = chain.request();
             Request.Builder requestBuilder = original.newBuilder()
+                    .header("Accept", "application/vnd.github+json")
+                    .header("User-Agent", "usth-github-client")
                     .header("Authorization", "Bearer " + token);
             Request request = requestBuilder.build();
             return chain.proceed(request);

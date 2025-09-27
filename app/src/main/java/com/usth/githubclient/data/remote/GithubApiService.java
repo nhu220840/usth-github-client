@@ -3,6 +3,7 @@ package com.usth.githubclient.data.remote;
 import com.usth.githubclient.data.remote.dto.RepoDto;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
+import com.usth.githubclient.data.remote.dto.UserEmailDto;
 import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -48,6 +49,9 @@ public interface GithubApiService {
     @GET("user")
     Call<UserDto> authenticate();
 
+    @GET("user/emails")
+    Call<List<UserEmailDto>> getUserEmails();
+
     @GET("user/repos")
     Call<List<RepoDto>> getAuthenticatedRepositories(
             @Query("per_page") int perPage,
@@ -60,4 +64,5 @@ public interface GithubApiService {
             @Query("q") String query,
             @Query("page") int page,
             @Query("per_page") int perPage
-    );}
+    );
+}

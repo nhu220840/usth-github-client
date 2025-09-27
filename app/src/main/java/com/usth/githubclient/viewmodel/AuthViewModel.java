@@ -9,11 +9,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.usth.githubclient.auth.TokenStore;
-import com.usth.githubclient.net.GitHubApi;
-import com.usth.githubclient.net.ServiceLocator;
+import com.usth.githubclient.data.remote.ApiClient;
+import com.usth.githubclient.data.remote.GithubApiService;
+import com.usth.githubclient.data.remote.dto.UserDto;
+import com.usth.githubclient.data.remote.dto.UserEmailDto;
 
 import java.util.List;
-import java.util.Map;
 
 import retrofit2.Response;
 
@@ -52,27 +53,28 @@ public class AuthViewModel extends AndroidViewModel {
         ui.postValue(AuthUiState.loading());
 
         new Thread(() -> {
+            ApiClient apiClient = new ApiClient();
             try {
                 // Lưu PAT mã hoá -> AuthInterceptor sẽ tự gắn header cho mọi request
-                TokenStore.save(getApplication(), pat);
+                GithubApiService api = apiClient.createService(pat, GithubApiService.class);
 
-                GitHubApi api = ServiceLocator.api(getApplication());
 
                 // 1) /user
-                Response<Map<String, Object>> meRes = api.me().execute();
+                Response<UserDto> meRes = api.authenticate().execute();
                 if (!meRes.isSuccessful() || meRes.body() == null) {
-                    try { TokenStore.clear(getApplication()); } catch (Exception ignored) {}
+                    clearStoredToken(apiClient);
                     ui.postValue(AuthUiState.error("PAT invalid (HTTP " + meRes.code() + ")"));
                     return;
                 }
 
-                Map<String, Object> me = meRes.body();
-                String login = me.get("login") != null ? String.valueOf(me.get("login")) : null;
-                String publicEmail = me.get("email") != null ? String.valueOf(me.get("email")) : null;
+                UserDto me = meRes.body();
+                String login = me != null ? me.getLogin() : null;
+                String publicEmail = me != null ? me.getEmail() : null;
+
 
                 // 2) Không yêu cầu định danh -> thành công
                 if (identifier == null || identifier.trim().isEmpty()) {
-                    ui.postValue(AuthUiState.signedIn(login));
+                    persistTokenAndSignIn(apiClient, pat, login);
                     return;
                 }
 
@@ -82,9 +84,9 @@ public class AuthViewModel extends AndroidViewModel {
                 // 3) Xác minh username
                 if (!isEmail) {
                     if (login != null && login.equalsIgnoreCase(id)) {
-                        ui.postValue(AuthUiState.signedIn(login));
+                        persistTokenAndSignIn(apiClient, pat, login);
                     } else {
-                        try { TokenStore.clear(getApplication()); } catch (Exception ignored) {}
+                        clearStoredToken(apiClient);
                         ui.postValue(AuthUiState.error("Username không khớp với tài khoản PAT"));
                     }
                     return;
@@ -93,32 +95,33 @@ public class AuthViewModel extends AndroidViewModel {
                 // 4) Xác minh email (public trước)
                 if (publicEmail != null && !publicEmail.isEmpty()) {
                     if (publicEmail.equalsIgnoreCase(id)) {
-                        ui.postValue(AuthUiState.signedIn(login));
+                        persistTokenAndSignIn(apiClient, pat, login);
                     } else {
-                        try { TokenStore.clear(getApplication()); } catch (Exception ignored) {}
+                        clearStoredToken(apiClient);
                         ui.postValue(AuthUiState.error("Email (public) does not match PAT account"));
                     }
                     return;
                 }
 
                 // 5) Email private -> /user/emails (cần scope user:email)
-                Response<List<Map<String, Object>>> emailsRes = api.emails().execute();
+                Response<List<UserEmailDto>> emailsRes = api.getUserEmails().execute();
                 if (emailsRes.isSuccessful() && emailsRes.body() != null) {
                     boolean matched = false;
-                    for (Map<String, Object> item : emailsRes.body()) {
-                        Object ev = item.get("email");
-                        if (ev != null && id.equalsIgnoreCase(String.valueOf(ev))) {
-                            matched = true; break;
+                    for (UserEmailDto item : emailsRes.body()) {
+                        String email = item != null ? item.getEmail() : null;
+                        if (email != null && id.equalsIgnoreCase(email)) {
+                            matched = true;
+                            break;
                         }
                     }
                     if (matched) {
-                        ui.postValue(AuthUiState.signedIn(login));
+                        persistTokenAndSignIn(apiClient, pat, login);
                     } else {
-                        try { TokenStore.clear(getApplication()); } catch (Exception ignored) {}
+                        clearStoredToken(apiClient);
                         ui.postValue(AuthUiState.error("Email does not match PAT account"));
                     }
                 } else {
-                    try { TokenStore.clear(getApplication()); } catch (Exception ignored) {}
+                    clearStoredToken(apiClient);
                     ui.postValue(AuthUiState.error(
                             "Unable to verify email. Grant scope 'user:email' to PAT or enter username to confirm."
                     ));
@@ -131,7 +134,25 @@ public class AuthViewModel extends AndroidViewModel {
     }
 
     public void signOut() {
+        ApiClient apiClient = new ApiClient();
         try { TokenStore.clear(getApplication()); } catch (Exception ignored) {}
+        apiClient.clearAuthToken();
         ui.postValue(AuthUiState.idle());
+    }
+
+    private void persistTokenAndSignIn(ApiClient apiClient, String pat, String login) {
+        try {
+            TokenStore.save(getApplication(), pat);
+            apiClient.setAuthToken(pat);
+            ui.postValue(AuthUiState.signedIn(login));
+        } catch (Exception e) {
+            clearStoredToken(apiClient);
+            ui.postValue(AuthUiState.error(e.getMessage()));
+        }
+    }
+
+    private void clearStoredToken(ApiClient apiClient) {
+        try { TokenStore.clear(getApplication()); } catch (Exception ignored) {}
+        apiClient.clearAuthToken();
     }
 }

@@ -18,19 +18,16 @@
 
         <!-- Authentication display and also LAUNCHER (observe ViewModel, render UI) -->
         <activity
-            android:name="com.usth.githubclient.activities.AuthenticationActivity"
-            android:exported="true"
-            android:launchMode="singleTop">
+            android:name=".activities.AuthenticationActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- Display after Authentication -->
         <activity
-            android:name="com.usth.githubclient.activities.MainActivity"
-            android:exported="true">
-        </activity>
+            android:name=".activities.MainActivity"
+            android:exported="false" />
     </application>
 </manifest>
