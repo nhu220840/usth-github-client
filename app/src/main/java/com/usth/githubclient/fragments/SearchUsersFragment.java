@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.usth.githubclient.R;
-import com.usth.githubclient.adapters.FollowersListAdapter;
+import com.usth.githubclient.adapters.SearchUsersListAdapter;
 import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
@@ -28,17 +28,17 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class FollowersListFragment extends Fragment {
+public class SearchUsersFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private TextView emptyView;
-    private FollowersListAdapter adapter;
+    private SearchUsersListAdapter adapter;
     private final ApiClient apiClient = new ApiClient();
     private GithubApiService apiService;
 
-    public static FollowersListFragment newInstance() {
-        return new FollowersListFragment();
+    public static SearchUsersFragment newInstance() {
+        return new SearchUsersFragment();
     }
 
     @Override
@@ -61,7 +61,7 @@ public class FollowersListFragment extends Fragment {
         recyclerView.addItemDecoration(
                 new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL));
 
-        adapter = new FollowersListAdapter();
+        adapter = new SearchUsersListAdapter();
         recyclerView.setAdapter(adapter);
 
         showEmpty("Type a username and press search.");
@@ -79,6 +79,8 @@ public class FollowersListFragment extends Fragment {
             showEmpty("Unable to initialize network client.");
             return;
         }
+        showLoading(true);
+
         // GỌI SEARCH USERS → trả về danh sách users liên quan
         apiService
                 .searchUsers(q, 1, 30)
@@ -91,13 +93,13 @@ public class FollowersListFragment extends Fragment {
 
                         if (resp.isSuccessful() && resp.body() != null) {
                             List<UserDto> items = resp.body().getItems();
-                            List<FollowersListAdapter.UserRow> ui = new ArrayList<>();
+                            List<SearchUsersListAdapter.UserRow> ui = new ArrayList<>();
                             if (items != null) {
                                 for (UserDto u : items) {
                                     if (u == null || u.getLogin() == null || u.getAvatarUrl() == null) {
                                         continue;
                                     }
-                                    ui.add(new FollowersListAdapter.UserRow(u.getLogin(), u.getAvatarUrl()));
+                                    ui.add(new SearchUsersListAdapter.UserRow(u.getLogin(), u.getAvatarUrl()));
                                 }
                             }
                             adapter.submit(ui);
@@ -125,7 +127,8 @@ public class FollowersListFragment extends Fragment {
                                                             detail.getName(),
                                                             detail.getBio(),
                                                             detail.getPublicRepos(),
-                                                            detail.getFollowers());                                            }
+                                                            detail.getFollowers());
+                                                }
                                             }
                                             @Override public void onFailure(Call<UserDto> call, Throwable t) { }
                                         });

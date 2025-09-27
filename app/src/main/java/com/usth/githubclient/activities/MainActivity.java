@@ -13,11 +13,11 @@ import androidx.core.widget.ImageViewCompat;
 
 import com.google.android.material.color.MaterialColors;
 import com.usth.githubclient.R;
-import com.usth.githubclient.fragments.FollowersListFragment;
+import com.usth.githubclient.fragments.SearchUsersFragment;
 
 public class MainActivity extends AppCompatActivity {
 
-    private FollowersListFragment followersFragment;
+    private SearchUsersFragment searchUsersFragment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -27,11 +27,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(findViewById(R.id.toolbar));
 
         FragmentManager fm = getSupportFragmentManager();
-        followersFragment = (FollowersListFragment) fm.findFragmentById(R.id.fragment_container);
-        if (followersFragment == null) {
-            followersFragment = FollowersListFragment.newInstance();
+        searchUsersFragment = (SearchUsersFragment) fm.findFragmentById(R.id.fragment_container);
+        if (searchUsersFragment == null) {
+            searchUsersFragment = SearchUsersFragment.newInstance();
             fm.beginTransaction()
-                    .replace(R.id.fragment_container, followersFragment)
+                    .replace(R.id.fragment_container, searchUsersFragment)
                     .commit();
         }
 
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override public boolean onQueryTextSubmit(String query) {
-                if (followersFragment != null) followersFragment.submitQuery(query.trim());
+                if (searchUsersFragment != null) searchUsersFragment.submitQuery(query.trim());
                 return true;
             }
             @Override public boolean onQueryTextChange(String newText) {

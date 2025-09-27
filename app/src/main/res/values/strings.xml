@@ -5,7 +5,7 @@
     <string name="title_profile">Profile</string>
     <string name="title_repo">Repositories</string>
 
-    <string name="followers_avatar_content_description">User\'s avatar</string>
+    <string name="search_user_avatar_content_description">User\'s avatar</string>
 
     <string name="sign_in_with_github">Sign in with Github</string>
     <string name="sign_out">Sign out</string>

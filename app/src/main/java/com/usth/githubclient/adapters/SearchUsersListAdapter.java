@@ -15,7 +15,7 @@ import com.usth.githubclient.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FollowersListAdapter extends RecyclerView.Adapter<FollowersListAdapter.VH> {
+public class SearchUsersListAdapter extends RecyclerView.Adapter<SearchUsersListAdapter.VH> {
 
     public static class UserRow {
         public final String login;
@@ -76,7 +76,7 @@ public class FollowersListAdapter extends RecyclerView.Adapter<FollowersListAdap
     @NonNull @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.followers_list_item, parent, false);
+                .inflate(R.layout.search_user_list_item, parent, false);
         return new VH(v);
     }
 
@@ -121,9 +121,9 @@ public class FollowersListAdapter extends RecyclerView.Adapter<FollowersListAdap
         TextView displayName;
         TextView username;
         TextView bio;
-        TextView stats;        VH(@NonNull View itemView) {
+        TextView stats;
+        VH(@NonNull View itemView) {
             super(itemView);
-            avatar = itemView.findViewById(R.id.avatar);
             avatar      = itemView.findViewById(R.id.avatar);
             displayName = itemView.findViewById(R.id.display_name);
             username    = itemView.findViewById(R.id.username);
