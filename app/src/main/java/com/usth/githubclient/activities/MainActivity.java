@@ -11,7 +11,7 @@ import com.usth.githubclient.fragments.FollowersListFragment;
 
 public class MainActivity extends AppCompatActivity {
 
-    private FollowersListFragment listFragment;
+    private FollowersListFragment followersFragment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -21,11 +21,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(findViewById(R.id.toolbar));
 
         FragmentManager fm = getSupportFragmentManager();
-        listFragment = (FollowersListFragment) fm.findFragmentById(R.id.fragment_container);
-        if (listFragment == null) {
-            listFragment = FollowersListFragment.newInstance();
+        followersFragment = (FollowersListFragment) fm.findFragmentById(R.id.fragment_container);
+        if (followersFragment == null) {
+            followersFragment = FollowersListFragment.newInstance();
             fm.beginTransaction()
-                    .replace(R.id.fragment_container, listFragment)
+                    .replace(R.id.fragment_container, followersFragment)
                     .commit();
         }
 
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override public boolean onQueryTextSubmit(String query) {
-                if (listFragment != null) listFragment.submitQuery(query.trim());
+                if (followersFragment != null) followersFragment.submitQuery(query.trim());
                 return true;
             }
             @Override public boolean onQueryTextChange(String newText) {
