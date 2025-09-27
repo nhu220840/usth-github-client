@@ -1,11 +1,17 @@
 package com.usth.githubclient.activities;
 
+import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.View;
+import android.widget.ImageView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.FragmentManager;
+import androidx.core.widget.ImageViewCompat;
 
+import com.google.android.material.color.MaterialColors;
 import com.usth.githubclient.R;
 import com.usth.githubclient.fragments.FollowersListFragment;
 
@@ -30,7 +36,33 @@ public class MainActivity extends AppCompatActivity {
         }
 
         SearchView searchView = findViewById(R.id.search_view);
-        searchView.setQueryHint("Search GitHub users…");
+        searchView.setQueryHint(getString(R.string.search_hint));
+        searchView.setIconifiedByDefault(false);
+        searchView.clearFocus();
+
+        View searchPlate = searchView.findViewById(androidx.appcompat.R.id.search_plate);
+        if (searchPlate != null) {
+            searchPlate.setBackground(null);
+        }
+
+        SearchView.SearchAutoComplete searchText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        if (searchText != null) {
+            int onSurface = MaterialColors.getColor(searchView, com.google.android.material.R.attr.colorOnSurface);
+            int onSurfaceVariant = MaterialColors.getColor(searchView, com.google.android.material.R.attr.colorOnSurfaceVariant);
+            searchText.setTextColor(onSurface);
+            searchText.setHintTextColor(onSurfaceVariant);
+            searchText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
+        }
+
+        int iconTint = MaterialColors.getColor(searchView, com.google.android.material.R.attr.colorOnSurfaceVariant);
+        ImageView searchIcon = searchView.findViewById(androidx.appcompat.R.id.search_mag_icon);
+        if (searchIcon != null) {
+            ImageViewCompat.setImageTintList(searchIcon, ColorStateList.valueOf(iconTint));
+        }
+        ImageView closeIcon = searchView.findViewById(androidx.appcompat.R.id.search_close_btn);
+        if (closeIcon != null) {
+            ImageViewCompat.setImageTintList(closeIcon, ColorStateList.valueOf(iconTint));
+        }
         searchView.setIconifiedByDefault(false);
         searchView.clearFocus();
 
