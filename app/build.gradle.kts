@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.usth.githubclient"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.usth.githubclient"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
     }
@@ -35,41 +35,34 @@ android {
 }
 
 dependencies {
+
     // Core & UI
-    implementation(libs.appcompat.v161)
-    implementation(libs.material.v1110)
-    implementation(libs.constraintlayout.v214)
-    implementation(libs.fragment)
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.fragment:fragment:1.6.2")
+    implementation ("androidx.recyclerview:recyclerview:1.3.2")
 
     // ViewModel & LiveData for MVVM
-    implementation(libs.lifecycle.viewmodel)
-    implementation(libs.lifecycle.livedata)
+    implementation("androidx.lifecycle:lifecycle-runtime:2.7.0")
+
 
     // Networking with Retrofit & OkHttp
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.logging.interceptor)
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
     // Image Loading with Glide
-    implementation(libs.glide)
-
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.androidx.navigation.fragment)
+    implementation(libs.androidx.navigation.ui)
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
     // Markdown Renderer
-    implementation(libs.markdownj.core)
-    implementation(libs.navigation.fragment)
-    implementation(libs.navigation.ui)
+    implementation("org.markdownj:markdownj-core:0.4")
 
     // Testing
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core.v351)
-
-    // Ensure UX (user experience)
-    implementation(libs.lifecycle.viewmodel.v284)
-
-    // Enable fragment and activity to get data
-    implementation(libs.lifecycle.livedata.v284)
-
-    // Security Crypto
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
 }

@@ -28,7 +28,7 @@ public class AuthInterceptor implements Interceptor {
         if (token != null && !token.isEmpty()) {
             req = req.newBuilder()
                     // Fine-grained PAT dùng 'Bearer'; PAT classic cũng chấp nhận
-                    .header("Authorization", "token " + token)
+                    .header("Authorization", "Bearer " + token)
                     .header("Accept", "application/vnd.github+json")
                     .header("User-Agent", "usth-github-client")
                     .build();
