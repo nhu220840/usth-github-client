@@ -9,7 +9,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        manifestPlaceholders["appAuthRedirectScheme"] = "usthgit"
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.usth.githubclient"
         applicationId = "com.usth.githubclient"
         minSdk = 24
         targetSdk = 33
@@ -75,5 +75,7 @@ dependencies {
 
     // Enable fragment and activity to get data
     implementation(libs.lifecycle.livedata.v284)
+
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
 }
