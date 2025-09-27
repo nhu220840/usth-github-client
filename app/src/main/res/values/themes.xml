@@ -1,15 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.USTHGitHubClient" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/github_dark_gray</item>
-
         <item name="colorOnPrimary">@color/white</item>
+    </style>
+
+    <style name="Theme.USTHGitHubClient" parent="Base.Theme.USTHGitHubClient" />
+
+    <style name="Theme.Transparent.NoActionBar" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
     </style>
 
     <style name="ShapeAppearance.App.CircleImageView" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
-
-    <style name="Theme.USTHGitHubClient" parent="Base.Theme.USTHGitHubClient" />
 </resources>

@@ -72,6 +72,11 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             @Override public boolean onQueryTextChange(String newText) {
+                if (newText == null || newText.trim().isEmpty()) {
+                    if (searchUsersFragment != null) {
+                        searchUsersFragment.showFollowers();
+                    }
+                }
                 // Optional: live search
                 return false;
             }

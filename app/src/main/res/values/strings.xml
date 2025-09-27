@@ -18,4 +18,10 @@
     <string name="sign_in">Sign in</string>
     <string name="search_hint">Search GitHub users…</string>
 
+    <string name="section_followers">Your followers</string>
+    <string name="section_search_results">Search results</string>
+    <string name="section_search_results_for">Search results for "%1$s"</string>
+    <string name="followers_empty_state">You don\'t have any followers yet. Try searching for people to follow!</string>
+    <string name="followers_load_failed">Couldn\'t load followers. Please try again.</string>
+
 </resources>
