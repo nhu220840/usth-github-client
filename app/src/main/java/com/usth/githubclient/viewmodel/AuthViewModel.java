@@ -37,13 +37,6 @@ public class AuthViewModel extends AndroidViewModel {
 
     public AuthViewModel(@NonNull Application app) {
         super(app);
-        // Khôi phục phiên từ PAT (mã hoá)
-        try {
-            String pat = TokenStore.load(app);
-            if (pat != null && !pat.isEmpty()) {
-                ui.postValue(AuthUiState.signedIn(null));
-            }
-        } catch (Exception ignored) {}
     }
 
     // ===== PAT Sign-in (có thể kèm username/email để xác nhận) =====
