@@ -44,12 +44,6 @@
     </string>
     <string name="sign_in_with_github">Sign in with Github</string>
     <string name="sign_out">Sign out</string>
-    <string name="github_auth_endpoint">https://github.com/login/oauth/authorize</string>
-    <string name="github_token_endpoint">https://github.com/login/oauth/access_token</string>
-    <string name="github_client_id">Ov23liZB9ixbVh79XMy3</string>
-    <string name="oauth_redirect_scheme">com.usth.githubclient</string>
-    <string name="oauth_redirect_host">oauth2redirect</string>
-    <string name="oauth_redirect_path">/callback</string>
     <string name="paste_github_personal_access_token_pat">Paste GitHub Personal Access Token (PAT)</string>
     <string name="github_pat">Enter your PAT (Personal Access Token)</string>
     <string name="sign_in_with_pat">Sign in with PAT</string>

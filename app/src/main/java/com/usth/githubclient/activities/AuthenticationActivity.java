@@ -22,6 +22,8 @@ public class AuthenticationActivity extends AppCompatActivity {
     private ProgressBar progress;
     private TextView txtStatus;
     private EditText inputPat;
+    private EditText inputUserNameOrEmail; // <-- thêm
+
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -33,6 +35,7 @@ public class AuthenticationActivity extends AppCompatActivity {
         btnPatSignIn = findViewById(R.id.btnPatSignIn);
         btnSignOut   = findViewById(R.id.btnSignOut);
         inputPat     = findViewById(R.id.inputPat);
+        inputUserNameOrEmail = findViewById(R.id.inputUserNameOrEmail); // <-- thêm
         progress     = findViewById(R.id.progress);
         txtStatus    = findViewById(R.id.txtStatus);
 
@@ -82,12 +85,14 @@ public class AuthenticationActivity extends AppCompatActivity {
         // Đăng nhập bằng PAT
         btnPatSignIn.setOnClickListener(v -> {
             String pat = inputPat.getText().toString().trim();
+            String identifier = inputUserNameOrEmail.getText().toString().trim(); // <-- đọc username/email
+
             if (pat.isEmpty()) {
                 txtStatus.setVisibility(View.VISIBLE);
                 txtStatus.setText("Vui lòng dán PAT");
                 return;
             }
-            viewModel.signInWithPat(pat);
+            viewModel.signInWithPat(pat, identifier);
         });
 
         // Đăng xuất

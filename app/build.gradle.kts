@@ -9,7 +9,6 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        manifestPlaceholders["appAuthRedirectScheme"] = "com.usth.githubclient"
         applicationId = "com.usth.githubclient"
         minSdk = 24
         targetSdk = 33
@@ -64,18 +63,13 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core.v351)
 
-    // AppAuth for authentication
-    implementation(libs.appauth)
-
-    // Browser display??
-    implementation(libs.browser)
-
     // Ensure UX (user experience)
     implementation(libs.lifecycle.viewmodel.v284)
 
     // Enable fragment and activity to get data
     implementation(libs.lifecycle.livedata.v284)
 
+    // Security Crypto
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
 }

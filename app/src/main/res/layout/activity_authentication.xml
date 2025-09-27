@@ -64,7 +64,7 @@
             android:id="@+id/btnPatSignIn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/sign_in_to_github"
+            android:text="@string/sign_in"
             android:layout_marginTop="8dp" />
     </LinearLayout>
 
