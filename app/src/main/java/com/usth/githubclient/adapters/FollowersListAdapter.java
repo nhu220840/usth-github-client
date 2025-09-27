@@ -21,6 +21,10 @@ public class FollowersListAdapter extends RecyclerView.Adapter<FollowersListAdap
         public final String login;
         public final String avatarUrl;
         public String displayName; // tên thật (có thể null)
+        public String bio;
+        public Integer publicRepos;
+        public Integer followers;
+
 
         public UserRow(String login, String avatarUrl) {
             this.login = login;
@@ -36,12 +40,34 @@ public class FollowersListAdapter extends RecyclerView.Adapter<FollowersListAdap
         notifyDataSetChanged();
     }
 
-    public void updateName(String login, String displayName) {
+    public void updateDetails(String login, String displayName, String bio, Integer publicRepos, Integer followers) {
         for (int i = 0; i < items.size(); i++) {
             UserRow r = items.get(i);
             if (r.login.equalsIgnoreCase(login)) {
-                r.displayName = displayName;
-                notifyItemChanged(i);
+                boolean changed = false;
+                if ((displayName != null && !displayName.equals(r.displayName)) ||
+                        (displayName == null && r.displayName != null)) {
+                    r.displayName = displayName;
+                    changed = true;
+                }
+                if ((bio != null && !bio.equals(r.bio)) || (bio == null && r.bio != null)) {
+                    r.bio = bio;
+                    changed = true;
+                }
+                if ((publicRepos != null && !publicRepos.equals(r.publicRepos)) ||
+                        (publicRepos == null && r.publicRepos != null)) {
+                    r.publicRepos = publicRepos;
+                    changed = true;
+                }
+                if ((followers != null && !followers.equals(r.followers)) ||
+                        (followers == null && r.followers != null)) {
+                    r.followers = followers;
+                    changed = true;
+                }
+
+                if (changed) {
+                    notifyItemChanged(i);
+                }
                 break;
             }
         }
@@ -57,10 +83,29 @@ public class FollowersListAdapter extends RecyclerView.Adapter<FollowersListAdap
     @Override
     public void onBindViewHolder(@NonNull VH h, int position) {
         UserRow row = items.get(position);
-        String title = (row.displayName != null && !row.displayName.isEmpty())
-                ? row.displayName + " (" + row.login + ")"
+
+        String displayName = (row.displayName != null && !row.displayName.trim().isEmpty())
+                ? row.displayName
                 : row.login;
-        h.name.setText(title);
+        h.displayName.setText(displayName);
+        h.displayName.setVisibility(View.VISIBLE);
+
+        h.username.setText("@" + row.login);
+
+        if (row.bio != null && !row.bio.trim().isEmpty()) {
+            h.bio.setVisibility(View.VISIBLE);
+            h.bio.setText(row.bio);
+        } else {
+            h.bio.setVisibility(View.GONE);
+        }
+
+        if (row.publicRepos != null && row.followers != null) {
+            String stats = row.publicRepos + " repositories · " + row.followers + " followers";
+            h.stats.setVisibility(View.VISIBLE);
+            h.stats.setText(stats);
+        } else {
+            h.stats.setVisibility(View.GONE);
+        }
 
         Glide.with(h.avatar.getContext())
                 .load(row.avatarUrl)
@@ -73,11 +118,17 @@ public class FollowersListAdapter extends RecyclerView.Adapter<FollowersListAdap
 
     static class VH extends RecyclerView.ViewHolder {
         ImageView avatar;
-        TextView name;
-        VH(@NonNull View itemView) {
+        TextView displayName;
+        TextView username;
+        TextView bio;
+        TextView stats;        VH(@NonNull View itemView) {
             super(itemView);
             avatar = itemView.findViewById(R.id.avatar);
-            name   = itemView.findViewById(R.id.username);
+            avatar      = itemView.findViewById(R.id.avatar);
+            displayName = itemView.findViewById(R.id.display_name);
+            username    = itemView.findViewById(R.id.username);
+            bio         = itemView.findViewById(R.id.bio);
+            stats       = itemView.findViewById(R.id.stats);
         }
     }
 }

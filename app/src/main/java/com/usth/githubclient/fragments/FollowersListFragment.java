@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,9 +16,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.usth.githubclient.R;
 import com.usth.githubclient.adapters.FollowersListAdapter;
-import com.usth.githubclient.network.RetrofitClient;
-import com.usth.githubclient.network.models.UserDto;
-import com.usth.githubclient.network.models.UserDetailDto;
+import com.usth.githubclient.data.remote.ApiClient;
+import com.usth.githubclient.data.remote.GithubApiService;
+import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
+import com.usth.githubclient.data.remote.dto.UserDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,6 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import com.usth.githubclient.network.models.SearchUsersResponse;
 
 public class FollowersListFragment extends Fragment {
 
@@ -35,9 +34,17 @@ public class FollowersListFragment extends Fragment {
     private ProgressBar progressBar;
     private TextView emptyView;
     private FollowersListAdapter adapter;
+    private final ApiClient apiClient = new ApiClient();
+    private GithubApiService apiService;
 
     public static FollowersListFragment newInstance() {
         return new FollowersListFragment();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        apiService = apiClient.createService(GithubApiService.class);
     }
 
     @Nullable
@@ -68,23 +75,30 @@ public class FollowersListFragment extends Fragment {
             return;
         }
         final String q = username.trim();
-        showLoading(true);
-
+        if (apiService == null) {
+            showEmpty("Unable to initialize network client.");
+            return;
+        }
         // GỌI SEARCH USERS → trả về danh sách users liên quan
-        RetrofitClient.api()
+        apiService
                 .searchUsers(q, 1, 30)
-                .enqueue(new Callback<SearchUsersResponse>() {
+                .enqueue(new Callback<SearchUsersResponseDto>() {
                     @Override
-                    public void onResponse(Call<SearchUsersResponse> call,
-                                           Response<SearchUsersResponse> resp) {
+                    public void onResponse(Call<SearchUsersResponseDto> call,
+                                           Response<SearchUsersResponseDto> resp) {
                         if (!isAdded()) return;
                         showLoading(false);
 
-                        if (resp.isSuccessful() && resp.body() != null && resp.body().items != null) {
-                            List<UserDto> items = resp.body().items;
-                            List<FollowersListAdapter.UserRow> ui = new java.util.ArrayList<>();
-                            for (UserDto u : items) {
-                                ui.add(new FollowersListAdapter.UserRow(u.login, u.avatarUrl));
+                        if (resp.isSuccessful() && resp.body() != null) {
+                            List<UserDto> items = resp.body().getItems();
+                            List<FollowersListAdapter.UserRow> ui = new ArrayList<>();
+                            if (items != null) {
+                                for (UserDto u : items) {
+                                    if (u == null || u.getLogin() == null || u.getAvatarUrl() == null) {
+                                        continue;
+                                    }
+                                    ui.add(new FollowersListAdapter.UserRow(u.getLogin(), u.getAvatarUrl()));
+                                }
                             }
                             adapter.submit(ui);
 
@@ -92,20 +106,28 @@ public class FollowersListFragment extends Fragment {
                             else showList();
 
                             // (Tuỳ chọn) Enrich: tải tên thật cho TOP 10 kết quả
-                            int limit = Math.min(items.size(), 10);
+                            int limit = items != null ? Math.min(items.size(), 10) : 0;
                             for (int i = 0; i < limit; i++) {
-                                final String login = items.get(i).login;
-                                RetrofitClient.api().getUser(login)
-                                        .enqueue(new Callback<UserDetailDto>() {
+                                final String login = items.get(i).getLogin();
+                                if (login == null || login.trim().isEmpty()) {
+                                    continue;
+                                }
+                                apiService.getUser(login)
+                                        .enqueue(new Callback<UserDto>() {
                                             @Override
-                                            public void onResponse(Call<UserDetailDto> call,
-                                                                   Response<UserDetailDto> resp2) {
+                                            public void onResponse(Call<UserDto> call,
+                                                                   Response<UserDto> resp2) {
                                                 if (!isAdded()) return;
                                                 if (resp2.isSuccessful() && resp2.body() != null) {
-                                                    adapter.updateName(login, resp2.body().name);
-                                                }
+                                                    UserDto detail = resp2.body();
+                                                    adapter.updateDetails(
+                                                            login,
+                                                            detail.getName(),
+                                                            detail.getBio(),
+                                                            detail.getPublicRepos(),
+                                                            detail.getFollowers());                                            }
                                             }
-                                            @Override public void onFailure(Call<UserDetailDto> call, Throwable t) { }
+                                            @Override public void onFailure(Call<UserDto> call, Throwable t) { }
                                         });
                             }
                         } else {
@@ -114,7 +136,7 @@ public class FollowersListFragment extends Fragment {
                     }
 
                     @Override
-                    public void onFailure(Call<SearchUsersResponse> call, Throwable t) {
+                    public void onFailure(Call<SearchUsersResponseDto> call, Throwable t) {
                         if (!isAdded()) return;
                         showLoading(false);
                         showEmpty("Network error: " + t.getMessage());
