@@ -262,7 +262,7 @@ public class SearchUsersFragment extends Fragment {
         if (apiService == null || items == null) {
             return;
         }
-        int limit = Math.min(items.size(), 10);
+        int limit = Math.min(items.size(), 100);
         for (int i = 0; i < limit; i++) {
             final UserDto dto = items.get(i);
             if (dto == null) {
