@@ -1,6 +1,7 @@
 package com.usth.githubclient.data.remote;
 
 import com.usth.githubclient.data.remote.dto.RepoDto;
+import com.usth.githubclient.data.remote.dto.SearchRepoResponseDto;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
 import java.util.List;
@@ -13,7 +14,6 @@ import retrofit2.http.Query;
  * Retrofit service definition for the GitHub REST API endpoints used by the app.
  */
 public interface GithubApiService {
-
     @GET("users/{username}")
     Call<UserDto> getUser(@Path("username") String username);
 
@@ -60,4 +60,10 @@ public interface GithubApiService {
             @Query("q") String query,
             @Query("page") int page,
             @Query("per_page") int perPage
-    );}
+    );
+
+    @GET("search/repositories")
+    Call<SearchRepoResponseDto> searchRepos(@Query("q") String query,
+                                            @Query("page") int page,
+                                            @Query("per_page") int perPage);
+}
