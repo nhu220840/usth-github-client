@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.text.method.PasswordTransformationMethod;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -22,9 +24,8 @@ public class AuthenticationActivity extends AppCompatActivity {
     private ProgressBar progress;
     private TextView txtStatus;
     private EditText inputPat;
-    private EditText inputUserNameOrEmail; // <-- thêm
-
-
+    private EditText inputUserNameOrEmail;
+    private CheckBox checkboxShowPassword;
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -35,9 +36,19 @@ public class AuthenticationActivity extends AppCompatActivity {
         btnPatSignIn = findViewById(R.id.btnPatSignIn);
         btnSignOut   = findViewById(R.id.btnSignOut);
         inputPat     = findViewById(R.id.inputPat);
-        inputUserNameOrEmail = findViewById(R.id.inputUserNameOrEmail); // <-- thêm
+        inputUserNameOrEmail = findViewById(R.id.inputUserNameOrEmail);
         progress     = findViewById(R.id.progress);
         txtStatus    = findViewById(R.id.txtStatus);
+        checkboxShowPassword = findViewById(R.id.checkboxShowPassword);
+
+        checkboxShowPassword.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                inputPat.setTransformationMethod(null);
+            } else {
+                inputPat.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            }
+            inputPat.setSelection(inputPat.getText().length());
+        });
 
         // ViewModel
         viewModel = new ViewModelProvider(this).get(AuthViewModel.class);
