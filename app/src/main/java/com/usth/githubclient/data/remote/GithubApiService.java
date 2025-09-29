@@ -1,6 +1,7 @@
 package com.usth.githubclient.data.remote;
 
 import com.usth.githubclient.data.remote.dto.RepoDto;
+import com.usth.githubclient.data.remote.dto.SearchRepoResponseDto;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
 import com.usth.githubclient.data.remote.dto.UserEmailDto;
@@ -65,4 +66,9 @@ public interface GithubApiService {
             @Query("page") int page,
             @Query("per_page") int perPage
     );
+
+    @GET("search/repositories")
+    Call<SearchRepoResponseDto> searchRepos(@Query("q") String query,
+                                            @Query("page") int page,
+                                            @Query("per_page") int perPage);
 }
