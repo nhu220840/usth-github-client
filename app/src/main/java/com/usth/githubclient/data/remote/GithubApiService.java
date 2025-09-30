@@ -5,9 +5,13 @@ import com.usth.githubclient.data.remote.dto.SearchRepoResponseDto;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
 import com.usth.githubclient.data.remote.dto.UserEmailDto;
+
 import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.DELETE;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -68,7 +72,23 @@ public interface GithubApiService {
     );
 
     @GET("search/repositories")
-    Call<SearchRepoResponseDto> searchRepos(@Query("q") String query,
-                                            @Query("page") int page,
-                                            @Query("per_page") int perPage);
+    Call<SearchRepoResponseDto> searchRepos(
+            @Query("q") String query,
+            @Query("page") int page,
+            @Query("per_page") int perPage);
+
+    @GET("user/starred/{owner}/{repo}")
+    Call<Void> isRepoStarred(
+            @Path("owner") String owner,
+            @Path("repo") String repo);
+
+    @PUT("user/starred/{owner}/{repo}")
+    Call<Void> starRepo(
+            @Path("owner") String owner,
+            @Path("repo") String repo);
+
+    @DELETE("user/starred/{owner}/{repo}")
+    Call<Void> unstarRepo(
+            @Path("owner") String owner,
+            @Path("repo") String repo);
 }

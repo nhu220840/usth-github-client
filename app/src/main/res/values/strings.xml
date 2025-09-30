@@ -17,7 +17,7 @@
     <string name="password">Password</string>
     <string name="show_password">Show password</string>
     <string name="sign_in">Sign in</string>
-    <string name="search_hint">Search GitHub users…</string>
+    <string name="search_hint">Search users…</string>
 
     <string name="section_followers">Your followers</string>
     <string name="section_search_results">Search results</string>
@@ -25,4 +25,9 @@
     <string name="followers_empty_state">You don\'t have any followers yet. Try searching for people to follow!</string>
     <string name="followers_load_failed">Couldn\'t load followers. Please try again.</string>
 
+    <string name="search_repo_hint">Search public repositories…</string>
+    <string name="repo_star">Star</string>
+    <string name="repo_view_on_github">View on GitHub</string>
+    <string name="repo_readme_title">README.md</string>
+    <string name="repo_unstar">Unstar</string>
 </resources>
