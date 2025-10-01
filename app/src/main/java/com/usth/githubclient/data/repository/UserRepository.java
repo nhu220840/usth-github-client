@@ -9,7 +9,7 @@ import retrofit2.Call;
  * Interface for data operations related to Users.
  * This abstracts the data source (network or local) from the rest of the app.
  */
-interface UserRepository {
+public interface UserRepository {
 
     Call<UserDto> getUser(String username);
 

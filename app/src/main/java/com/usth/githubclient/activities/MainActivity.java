@@ -1,6 +1,7 @@
 package com.usth.githubclient.activities;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -57,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
                 activeFragment = searchReposFragment;
                 updateSearchHint();
                 return true;
+            } else if (item.getItemId() == R.id.nav_profile) {
+                Intent intent = UserProfileActivity.createIntent(this, null);
+                startActivity(intent);
+                return false; // Return false để không chọn item này
             }
             return false;
         });
