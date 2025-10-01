@@ -31,18 +31,20 @@ public class UserViewModel extends ViewModel {
     private final ExecutorService executorService;
     private final AuthRepository authRepository;
     private final UserRepository userRepository;
-    private final UserMapper userMapper; // Thêm UserMapper
+    private final UserMapper userMapper;
 
     private String currentUsername;
+    private boolean displayingAuthenticatedProfile;
 
-    private static final String FALLBACK_USERNAME = "octocat";
 
+    private static final String GENERIC_ERROR_MESSAGE = "Unable to load this profile right now.";
+    private static final String AUTH_REQUIRED_ERROR_MESSAGE =
+            "Sign in with a personal access token to view your profile.";
 
     public UserViewModel() {
         this(ServiceLocator.getInstance().authRepository(), buildDefaultUserRepository(), ServiceLocator.getInstance().userMapper());
     }
 
-    // Sửa constructor để nhận UserMapper
     public UserViewModel(@NonNull AuthRepository authRepository,
                          @NonNull UserRepository userRepository,
                          @NonNull UserMapper userMapper) {
@@ -64,65 +66,114 @@ public class UserViewModel extends ViewModel {
 
     public void loadUserProfile(@Nullable String username) {
         String normalized = username == null ? "" : username.trim();
+        boolean viewingAuthenticatedUser = normalized.isEmpty();
 
-        if (normalized.isEmpty()) {
-            UserSessionData session = authRepository.getCachedSession();
-            if (session != null) {
-                Optional<GitHubUserProfileDataEntry> profile = session.getUserProfile();
-                if (profile.isPresent()) {
-                    GitHubUserProfileDataEntry cachedProfile = profile.get();
-                    currentUsername = cachedProfile.getUsername();
-                    uiState.setValue(UserUiState.success(cachedProfile, false));
-                    return;
-                }
-                normalized = session.getUsername();
+        if (viewingAuthenticatedUser) {
+            if (displayingAuthenticatedProfile && hasExistingProfile()) {
+                return;
             }
-            if (normalized == null || normalized.trim().isEmpty()) {
-                normalized = FALLBACK_USERNAME;
+            if (tryLoadProfileFromSession()) {
+                return;
             }
-        }
-
-        if (normalized.isEmpty()) {
-            normalized = FALLBACK_USERNAME;
-        }
-
-        if (normalized.equalsIgnoreCase(currentUsername)
-                && uiState.getValue() != null
-                && uiState.getValue().getProfile() != null) {
+        } else if (normalized.equalsIgnoreCase(currentUsername) && hasExistingProfile()) {
             return;
         }
 
-        currentUsername = normalized;
+        displayingAuthenticatedProfile = viewingAuthenticatedUser;
+        currentUsername = viewingAuthenticatedUser ? null : normalized;
         uiState.setValue(UserUiState.loading());
 
         final String requestedUsername = normalized;
         executorService.execute(() -> {
-            try {
-                // Sửa đổi phần logic gọi API
-                Response<UserDto> response = userRepository.getUser(requestedUsername).execute();
-                if (response.isSuccessful() && response.body() != null) {
-                    GitHubUserProfileDataEntry profile = userMapper.map(response.body());
-                    uiState.postValue(UserUiState.success(profile, false));
-                } else {
-                    String errorMsg = "Unable to load this profile right now. (Code: " + response.code() + ")";
-                    uiState.postValue(UserUiState.error(errorMsg));
-                }
-            } catch (IOException exception) {
-                String message = exception.getMessage();
-                if (message == null || message.trim().isEmpty()) {
-                    message = "Unable to load this profile right now.";
-                }
-                uiState.postValue(UserUiState.error(message));
+            // FIX: Replaced the undefined 'fetchAuthenticatedUser' variable
+            // with the correctly scoped 'viewingAuthenticatedUser' boolean.
+            if (viewingAuthenticatedUser) {
+                fetchAuthenticatedProfile();
+            } else {
+                fetchUserProfileByUsername(requestedUsername);
             }
         });
     }
 
-    public void retry() {
-        if (currentUsername == null && uiState.getValue() != null
-                && uiState.getValue().getProfile() != null) {
-            return;
+    private boolean hasExistingProfile() {
+        UserUiState state = uiState.getValue();
+        return state != null && state.getProfile() != null;
+    }
+
+    private boolean tryLoadProfileFromSession() {
+        UserSessionData session = authRepository.getCachedSession();
+        if (session == null) {
+            return false;
         }
-        loadUserProfile(currentUsername);
+        Optional<GitHubUserProfileDataEntry> profile = session.getUserProfile();
+        if (profile.isEmpty()) {
+            return false;
+        }
+        GitHubUserProfileDataEntry cachedProfile = profile.get();
+        currentUsername = cachedProfile.getUsername();
+        displayingAuthenticatedProfile = true;
+        uiState.setValue(UserUiState.success(cachedProfile, false));
+        return true;
+    }
+
+    private void fetchAuthenticatedProfile() {
+        try {
+            Response<UserDto> response = userRepository.authenticate().execute();
+            if (response.isSuccessful() && response.body() != null) {
+                GitHubUserProfileDataEntry profile = userMapper.map(response.body());
+                currentUsername = profile.getUsername();
+                displayingAuthenticatedProfile = true;
+                uiState.postValue(UserUiState.success(profile, false));
+                return;
+            }
+
+            displayingAuthenticatedProfile = true;
+            if (response.code() == 401 || response.code() == 403) {
+                uiState.postValue(UserUiState.error(AUTH_REQUIRED_ERROR_MESSAGE));
+            } else {
+                String errorMsg = "Unable to load this profile right now. (Code: " + response.code() + ")";
+                uiState.postValue(UserUiState.error(errorMsg));
+            }
+        } catch (IOException exception) {
+            displayingAuthenticatedProfile = true;
+            String message = exception.getMessage();
+            if (message == null || message.trim().isEmpty()) {
+                message = GENERIC_ERROR_MESSAGE;
+            }
+            uiState.postValue(UserUiState.error(message));
+        }
+    }
+
+    private void fetchUserProfileByUsername(@NonNull String username) {
+        try {
+            Response<UserDto> response = userRepository.getUser(username).execute();
+            if (response.isSuccessful() && response.body() != null) {
+                GitHubUserProfileDataEntry profile = userMapper.map(response.body());
+                currentUsername = profile.getUsername();
+                displayingAuthenticatedProfile = false;
+                uiState.postValue(UserUiState.success(profile, false));
+                return;
+            }
+
+            displayingAuthenticatedProfile = false;
+            String errorMsg = "Unable to load this profile right now. (Code: " + response.code() + ")";
+            uiState.postValue(UserUiState.error(errorMsg));
+        } catch (IOException exception) {
+            displayingAuthenticatedProfile = false;
+            String message = exception.getMessage();
+            if (message == null || message.trim().isEmpty()) {
+                message = GENERIC_ERROR_MESSAGE;
+            }
+            uiState.postValue(UserUiState.error(message));
+        }
+    }
+
+    public void retry() {
+        if (displayingAuthenticatedProfile || currentUsername == null) {
+            loadUserProfile(null);
+        } else {
+            loadUserProfile(currentUsername);
+        }
     }
 
     @Override
@@ -131,7 +182,7 @@ public class UserViewModel extends ViewModel {
         executorService.shutdownNow();
     }
 
-    // Lớp UserUiState giữ nguyên không đổi
+    // The UserUiState class remains unchanged.
     public static final class UserUiState {
         private final boolean loading;
         private final GitHubUserProfileDataEntry profile;

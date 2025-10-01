@@ -32,5 +32,8 @@
         <activity
             android:name=".activities.RepositoryDetailActivity"
             android:exported="false" />
+        <activity
+            android:name=".activities.UserProfileActivity"
+            android:exported="false" />
     </application>
 </manifest>
