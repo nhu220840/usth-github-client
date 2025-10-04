@@ -110,7 +110,7 @@ public class UserViewModel extends ViewModel {
         GitHubUserProfileDataEntry cachedProfile = profile.get();
         currentUsername = cachedProfile.getUsername();
         displayingAuthenticatedProfile = true;
-        uiState.setValue(UserUiState.success(cachedProfile, false));
+        uiState.setValue(UserUiState.success(cachedProfile));
         return true;
     }
 
@@ -121,7 +121,7 @@ public class UserViewModel extends ViewModel {
                 GitHubUserProfileDataEntry profile = userMapper.map(response.body());
                 currentUsername = profile.getUsername();
                 displayingAuthenticatedProfile = true;
-                uiState.postValue(UserUiState.success(profile, false));
+                uiState.postValue(UserUiState.success(profile));
                 return;
             }
 
@@ -149,7 +149,7 @@ public class UserViewModel extends ViewModel {
                 GitHubUserProfileDataEntry profile = userMapper.map(response.body());
                 currentUsername = profile.getUsername();
                 displayingAuthenticatedProfile = false;
-                uiState.postValue(UserUiState.success(profile, false));
+                uiState.postValue(UserUiState.success(profile));
                 return;
             }
 
@@ -185,32 +185,29 @@ public class UserViewModel extends ViewModel {
         private final boolean loading;
         private final GitHubUserProfileDataEntry profile;
         private final String errorMessage;
-        private final boolean usingMockData;
 
         private UserUiState(boolean loading,
                             GitHubUserProfileDataEntry profile,
-                            String errorMessage,
-                            boolean usingMockData) {
+                            String errorMessage) {
             this.loading = loading;
             this.profile = profile;
             this.errorMessage = errorMessage;
-            this.usingMockData = usingMockData;
         }
 
         public static UserUiState idle() {
-            return new UserUiState(false, null, null, false);
+            return new UserUiState(false, null, null);
         }
 
         public static UserUiState loading() {
-            return new UserUiState(true, null, null, false);
+            return new UserUiState(true, null, null);
         }
 
-        public static UserUiState success(@NonNull GitHubUserProfileDataEntry profile, boolean usingMockData) {
-            return new UserUiState(false, Objects.requireNonNull(profile, "profile == null"), null, usingMockData);
+        public static UserUiState success(@NonNull GitHubUserProfileDataEntry profile) {
+            return new UserUiState(false, Objects.requireNonNull(profile, "profile == null"), null);
         }
 
         public static UserUiState error(@NonNull String message) {
-            return new UserUiState(false, null, Objects.requireNonNull(message, "message == null"), false);
+            return new UserUiState(false, null, Objects.requireNonNull(message, "message == null"));
         }
 
         public boolean isLoading() {
@@ -225,10 +222,6 @@ public class UserViewModel extends ViewModel {
         @Nullable
         public String getErrorMessage() {
             return errorMessage;
-        }
-
-        public boolean isUsingMockData() {
-            return usingMockData;
         }
     }
 }

@@ -1,35 +1,36 @@
 <resources>
+
     <string name="app_name">USTH GitHub Client</string>
-
     <string name="title_home">Home</string>
-    <string name="title_profile">Profile</string>
     <string name="title_repo">Repositories</string>
-
-    <string name="search_user_avatar_content_description">User\'s avatar</string>
+    <string name="title_profile">Profile</string>
 
     <string name="sign_in_with_github">Sign in with Github</string>
-    <string name="sign_out">Sign out</string>
-    <string name="paste_github_personal_access_token_pat">Paste GitHub Personal Access Token (PAT)</string>
-    <string name="github_pat">Enter your PAT (Personal Access Token)</string>
-    <string name="username_or_email">Enter you Username or Email</string>
     <string name="sign_in_to_github">Sign in to Github</string>
     <string name="user_name_or_email">Username or Email</string>
     <string name="password">Password</string>
+    <string name="paste_github_personal_access_token_pat">Paste GitHub Personal Access Token (PAT)</string>
+    <string name="github_pat">Enter your PAT (Personal Access Token)</string>
+    <string name="username_or_email">Enter you Username or Email</string>
     <string name="show_password">Show password</string>
     <string name="sign_in">Sign in</string>
-    <string name="search_hint">Search users…</string>
+    <string name="sign_out">Sign out</string>
 
+    <string name="search_hint">Search users…</string>
+    <string name="search_repo_hint">Search public repositories…</string>
     <string name="section_followers">Your followers</string>
+    <string name="section_repositories">Your Repositories</string>
     <string name="section_search_results">Search results</string>
     <string name="section_search_results_for">Search results for "%1$s"</string>
+
     <string name="followers_empty_state">You don\'t have any followers yet. Try searching for people to follow!</string>
     <string name="followers_load_failed">Couldn\'t load followers. Please try again.</string>
+    <string name="user_profile_error_generic">Unable to load this profile right now.</string>
 
-    <string name="search_repo_hint">Search public repositories…</string>
     <string name="repo_star">Star</string>
+    <string name="repo_unstar">Unstar</string>
     <string name="repo_view_on_github">View on GitHub</string>
     <string name="repo_readme_title">README.md</string>
-    <string name="repo_unstar">Unstar</string>
 
     <string name="user_profile_title">Profile</string>
     <string name="user_profile_username_format">/@%1$s</string>
@@ -46,10 +47,9 @@
     <string name="user_profile_profile_label">GitHub</string>
     <string name="user_profile_created_label">Joined</string>
     <string name="user_profile_updated_label">Last updated</string>
-    <string name="user_profile_error_generic">Unable to load this profile right now.</string>
     <string name="user_profile_retry">Retry</string>
-    <string name="user_profile_use_mock">Use mock data</string>
-    <string name="user_profile_mock_badge">Showing preview data</string>
+
+    <string name="search_user_avatar_content_description">User\'s avatar</string>
     <string name="followers_avatar_content_description">User\'s avatar</string>
-    <string name="section_repositories">Your Repositories</string>
+
 </resources>

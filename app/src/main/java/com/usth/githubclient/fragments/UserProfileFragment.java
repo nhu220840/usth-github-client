@@ -83,7 +83,6 @@ public class UserProfileFragment extends Fragment {
         GitHubUserProfileDataEntry profile = state.getProfile();
         if (profile != null) {
             binding.contentScroll.setVisibility(View.VISIBLE);
-            binding.mockBanner.setVisibility(state.isUsingMockData() ? View.VISIBLE : View.GONE);
             bindProfile(profile);
         } else if (state.getErrorMessage() == null) {
             binding.contentScroll.setVisibility(View.GONE);
