@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +15,7 @@ import com.usth.githubclient.R;
 import com.usth.githubclient.databinding.ActivityUserProfileBinding;
 import com.usth.githubclient.di.ServiceLocator;
 import com.usth.githubclient.domain.model.UserSessionData;
+import com.usth.githubclient.fragments.SettingsFragment;
 import com.usth.githubclient.fragments.UserProfileFragment;
 
 public class UserProfileActivity extends AppCompatActivity {
@@ -80,6 +83,33 @@ public class UserProfileActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Gắn menu vào toolbar
+        getMenuInflater().inflate(R.menu.user_profile_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        // Xử lý khi item trên menu được chọn
+        if (item.getItemId() == R.id.action_settings) {
+            // Khi nhấn nút settings, chuyển sang SettingsFragment
+            showSettingsFragment();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showSettingsFragment() {
+        // Thay thế fragment hiện tại bằng SettingsFragment
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.user_profile_fragment_container, new SettingsFragment())
+                .addToBackStack(null) // Cho phép quay lại fragment trước đó
+                .commit();
     }
 
     @Override
