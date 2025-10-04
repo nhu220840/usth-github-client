@@ -4,40 +4,29 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.usth.githubclient.R;
 import com.usth.githubclient.adapters.SearchReposListAdapter;
 import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
-import com.usth.githubclient.data.remote.dto.RepoDto;
 import com.usth.githubclient.data.remote.dto.SearchRepoResponseDto;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.usth.githubclient.viewmodel.SearchReposViewModel; // Import ViewModel
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class SearchReposFragment extends BaseFragment {
     private SearchReposListAdapter adapter;
-    private ApiClient apiClient = new ApiClient();
-    private GithubApiService apiService;
+    private GithubApiService apiService; // Giữ lại để dùng cho chức năng search
+    private SearchReposViewModel viewModel; // Thêm ViewModel
     private String lastSearchQuery;
-    private List<RepoDto> cachedRepos = new ArrayList<>();
 
     private enum ListMode { REPOS, SEARCH }
     private ListMode listMode = ListMode.REPOS;
-
 
     public static SearchReposFragment newInstance() {
         return new SearchReposFragment();
@@ -46,7 +35,9 @@ public class SearchReposFragment extends BaseFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        apiService = apiClient.createService(GithubApiService.class);
+        // Khởi tạo ViewModel
+        viewModel = new ViewModelProvider(this).get(SearchReposViewModel.class);
+        apiService = new ApiClient().createService(GithubApiService.class);
     }
 
     @Nullable
@@ -58,14 +49,35 @@ public class SearchReposFragment extends BaseFragment {
         emptyView = v.findViewById(R.id.empty);
         sectionTitle = v.findViewById(R.id.section_title);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new SearchReposListAdapter();
-        recyclerView.setAdapter(adapter);
+        setupRecyclerView();
 
-        displayMyRepos();
+        // Lắng nghe dữ liệu từ ViewModel
+        viewModel.getMyRepos().observe(getViewLifecycleOwner(), repos -> {
+            if (listMode == ListMode.REPOS) {
+                adapter.submit(repos);
+                if (repos.isEmpty()) {
+                    showEmpty("You don't have any repositories yet.");
+                } else {
+                    showList();
+                }
+            }
+        });
+
+        viewModel.getError().observe(getViewLifecycleOwner(), errorMsg -> {
+            if (listMode == ListMode.REPOS) {
+                showEmpty(errorMsg);
+            }
+        });
+
+        // Chỉ hiển thị repo của tôi khi không có query tìm kiếm
+        if (lastSearchQuery == null || lastSearchQuery.isEmpty()) {
+            displayMyRepos();
+        }
+
         return v;
     }
 
+    // Phương thức search không thay đổi nhiều
     public void submitQuery(String query) {
         if (query == null || query.trim().isEmpty()) {
             displayMyRepos();
@@ -81,7 +93,6 @@ public class SearchReposFragment extends BaseFragment {
             public void onResponse(Call<SearchRepoResponseDto> call, Response<SearchRepoResponseDto> response) {
                 if (!isAdded() || listMode != ListMode.SEARCH || !q.equals(lastSearchQuery)) return;
                 showLoading(false);
-
                 if (response.isSuccessful() && response.body() != null) {
                     adapter.submit(response.body().getItems());
                     if (response.body().getItems().isEmpty()) {
@@ -93,7 +104,6 @@ public class SearchReposFragment extends BaseFragment {
                     showEmpty("Search failed: " + response.code());
                 }
             }
-
             @Override
             public void onFailure(Call<SearchRepoResponseDto> call, Throwable t) {
                 if (!isAdded() || listMode != ListMode.SEARCH || !q.equals(lastSearchQuery)) return;
@@ -110,48 +120,19 @@ public class SearchReposFragment extends BaseFragment {
     private void displayMyRepos() {
         listMode = ListMode.REPOS;
         lastSearchQuery = null;
-
-        if (!cachedRepos.isEmpty()) {
-            adapter.submit(cachedRepos);
-            showList();
-            return;
-        }
-
         showLoading(true);
-        apiService.getAuthenticatedRepositories(30, 1, "updated").enqueue(new Callback<List<RepoDto>>() {
-            @Override
-            public void onResponse(Call<List<RepoDto>> call, Response<List<RepoDto>> response) {
-                if (!isAdded() || listMode != ListMode.REPOS) return;
-                showLoading(false);
-
-                if (response.isSuccessful() && response.body() != null) {
-                    cachedRepos.clear();
-                    cachedRepos.addAll(response.body());
-                    adapter.submit(cachedRepos);
-                    if (cachedRepos.isEmpty()) {
-                        showEmpty("You don't have any repositories yet.");
-                    } else {
-                        showList();
-                    }
-                } else {
-                    showEmpty("Failed to load your repositories.");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<RepoDto>> call, Throwable t) {
-                if (!isAdded() || listMode != ListMode.REPOS) return;
-                showLoading(false);
-                showEmpty("Network error while loading your repositories.");
-            }
-        });
+        // Yêu cầu ViewModel tải dữ liệu.
+        // ViewModel sẽ tự biết nếu đã có dữ liệu rồi thì sẽ không tải lại
+        viewModel.loadMyRepos();
     }
+
     @Nullable
     @Override
     protected String getSectionTitle() {
+        // ... giữ nguyên
         switch (listMode) {
             case REPOS:
-                return getString(R.string.section_repositories); // "Your Repositories"
+                return getString(R.string.section_repositories);
             case SEARCH:
                 if (lastSearchQuery != null && !lastSearchQuery.isEmpty()) {
                     return getString(R.string.section_search_results_for, lastSearchQuery);
@@ -159,11 +140,13 @@ public class SearchReposFragment extends BaseFragment {
                     return getString(R.string.section_search_results);
                 }
             default:
-                return null; // Trả về null để ẩn tiêu đề
+                return null;
         }
     }
+
     @Override
     protected void setupRecyclerView() {
+        // ... giữ nguyên
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.addItemDecoration(new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL));
         adapter = new SearchReposListAdapter();

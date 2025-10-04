@@ -8,17 +8,19 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.usth.githubclient.R;
 import com.usth.githubclient.activities.AuthenticationActivity;
 import com.usth.githubclient.di.ServiceLocator;
+import com.usth.githubclient.util.ThemeManager; // Import lớp mới
 
 public class SettingsFragment extends Fragment {
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Gắn layout cho fragment
         return inflater.inflate(R.layout.fragment_settings, container, false);
     }
 
@@ -26,24 +28,31 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Xử lý nút Đăng xuất
         Button btnLogout = view.findViewById(R.id.btn_logout);
-        btnLogout.setOnClickListener(v -> {
-            logout();
+        btnLogout.setOnClickListener(v -> logout());
+
+        // Xử lý Switch Dark Mode
+        MaterialSwitch darkModeSwitch = view.findViewById(R.id.switch_dark_mode);
+        int currentMode = ThemeManager.getSavedThemeMode(requireContext());
+
+        // Cập nhật trạng thái của Switch dựa trên theme hiện tại
+        darkModeSwitch.setChecked(currentMode == AppCompatDelegate.MODE_NIGHT_YES);
+
+        // Lắng nghe sự kiện thay đổi
+        darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            int newMode = isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO;
+            ThemeManager.saveThemeMode(requireContext(), newMode);
+            ThemeManager.applyTheme(newMode);
         });
     }
 
     private void logout() {
+        // ... (giữ nguyên mã logout)
         if (getActivity() == null) return;
-
-        // Xóa thông tin phiên đăng nhập đã lưu
         ServiceLocator.getInstance().authRepository().signOut();
-
-        // Tạo Intent để quay về màn hình đăng nhập
         Intent intent = new Intent(getActivity(), AuthenticationActivity.class);
-
-        // Xóa hết các Activity cũ khỏi stack để người dùng không thể quay lại
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
         startActivity(intent);
         getActivity().finish();
     }

@@ -10,21 +10,22 @@ import android.widget.ImageView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.core.widget.ImageViewCompat;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.color.MaterialColors;
 import com.usth.githubclient.R;
+import com.usth.githubclient.adapters.ViewPagerAdapter;
 import com.usth.githubclient.fragments.SearchReposFragment;
 import com.usth.githubclient.fragments.SearchUsersFragment;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SearchUsersFragment searchUsersFragment;
-    private SearchReposFragment searchReposFragment;
-    private Fragment activeFragment;
+    private ViewPager2 viewPager;
+    private BottomNavigationView navView;
+    private ViewPagerAdapter viewPagerAdapter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -32,75 +33,90 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         setSupportActionBar(findViewById(R.id.toolbar));
-        setupBottomNavigation();
+
+        viewPager = findViewById(R.id.view_pager);
+        navView = findViewById(R.id.bottom_navigation);
+
+        // Khởi tạo Adapter và gán cho ViewPager
+        viewPagerAdapter = new ViewPagerAdapter(this);
+        viewPager.setAdapter(viewPagerAdapter);
+
+        // Tắt tính năng vuốt ngang để chỉ điều khiển bằng BottomNavigationView
+        viewPager.setUserInputEnabled(false);
+
+        setupNavigationSync();
         setupSearchView();
     }
 
-    private void setupBottomNavigation() {
-        BottomNavigationView navView = findViewById(R.id.bottom_navigation);
-        FragmentManager fm = getSupportFragmentManager();
-
-        searchUsersFragment = SearchUsersFragment.newInstance();
-        searchReposFragment = SearchReposFragment.newInstance();
-
-        fm.beginTransaction().add(R.id.fragment_container, searchReposFragment, "2").hide(searchReposFragment).commit();
-        fm.beginTransaction().add(R.id.fragment_container, searchUsersFragment, "1").commit();
-        activeFragment = searchUsersFragment;
-
+    private void setupNavigationSync() {
+        // Đồng bộ khi người dùng bấm vào một tab trên BottomNavigationView
         navView.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.nav_home) {
-                fm.beginTransaction().hide(activeFragment).show(searchUsersFragment).commit();
-                activeFragment = searchUsersFragment;
-                updateSearchHint();
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                viewPager.setCurrentItem(0, false); // Chuyển đến trang 0 (Home)
                 return true;
-            } else if (item.getItemId() == R.id.nav_repositories) {
-                fm.beginTransaction().hide(activeFragment).show(searchReposFragment).commit();
-                activeFragment = searchReposFragment;
-                updateSearchHint();
+            } else if (itemId == R.id.nav_repositories) {
+                viewPager.setCurrentItem(1, false); // Chuyển đến trang 1 (Repositories)
                 return true;
-            } else if (item.getItemId() == R.id.nav_profile) {
+            } else if (itemId == R.id.nav_profile) {
                 Intent intent = UserProfileActivity.createIntent(this, null);
                 startActivity(intent);
-                return false; // Return false để không chọn item này
+                return false; // Không chọn tab này
             }
             return false;
+        });
+
+        // Đồng bộ khi ViewPager thay đổi trang (dùng cho trường hợp vuốt)
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                if (position == 1) {
+                    navView.getMenu().findItem(R.id.nav_repositories).setChecked(true);
+                } else {
+                    navView.getMenu().findItem(R.id.nav_home).setChecked(true);
+                }
+                updateSearchHint();
+            }
         });
     }
 
     private void setupSearchView() {
         SearchView searchView = findViewById(R.id.search_view);
-        updateSearchHint(); // Set initial hint
+        updateSearchHint();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if (activeFragment == searchUsersFragment) {
-                    searchUsersFragment.submitQuery(query.trim());
-                } else if (activeFragment == searchReposFragment) {
-                    searchReposFragment.submitQuery(query.trim());
+                // Lấy fragment hiện tại từ FragmentManager theo tag mặc định của ViewPager2
+                Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
+                if (currentFragment instanceof SearchUsersFragment) {
+                    ((SearchUsersFragment) currentFragment).submitQuery(query.trim());
+                } else if (currentFragment instanceof SearchReposFragment) {
+                    ((SearchReposFragment) currentFragment).submitQuery(query.trim());
                 }
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
                 if (newText == null || newText.trim().isEmpty()) {
-                    if (activeFragment == searchUsersFragment) {
-                        searchUsersFragment.showFollowers();
-                    } else if (activeFragment == searchReposFragment) {
-                        searchReposFragment.showMyRepos();
+                    if (currentFragment instanceof SearchUsersFragment) {
+                        ((SearchUsersFragment) currentFragment).showFollowers();
+                    } else if (currentFragment instanceof SearchReposFragment) {
+                        ((SearchReposFragment) currentFragment).showMyRepos();
                     }
                 }
                 return false;
             }
         });
 
-        // Styling for the SearchView
+        // --- Mã styling cho SearchView giữ nguyên ---
         View searchPlate = searchView.findViewById(androidx.appcompat.R.id.search_plate);
         if (searchPlate != null) {
             searchPlate.setBackground(null);
         }
-
         @SuppressLint("RestrictedApi")
         SearchView.SearchAutoComplete searchText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
         if (searchText != null) {
@@ -110,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
             searchText.setHintTextColor(onSurfaceVariant);
             searchText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
         }
-
         int iconTint = MaterialColors.getColor(searchView, com.google.android.material.R.attr.colorOnSurfaceVariant);
         ImageView searchIcon = searchView.findViewById(androidx.appcompat.R.id.search_mag_icon);
         if (searchIcon != null) {
@@ -126,9 +141,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateSearchHint() {
         SearchView searchView = findViewById(R.id.search_view);
-        if (activeFragment == searchUsersFragment) {
+        if (viewPager.getCurrentItem() == 0) { // Vị trí 0 là Home
             searchView.setQueryHint(getString(R.string.search_hint));
-        } else if (activeFragment == searchReposFragment) {
+        } else { // Vị trí 1 là Repositories
             searchView.setQueryHint(getString(R.string.search_repo_hint));
         }
     }

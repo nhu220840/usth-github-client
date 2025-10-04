@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.usth.githubclient.R;
+import com.usth.githubclient.util.ThemeManager;
 import com.usth.githubclient.viewmodel.AuthViewModel;
 
 public class AuthenticationActivity extends AppCompatActivity {
@@ -29,9 +30,11 @@ public class AuthenticationActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        int savedTheme = ThemeManager.getSavedThemeMode(this);
+        ThemeManager.applyTheme(savedTheme);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authentication);
-
         // Bind UI
         btnPatSignIn = findViewById(R.id.btnPatSignIn);
         btnSignOut   = findViewById(R.id.btnSignOut);
