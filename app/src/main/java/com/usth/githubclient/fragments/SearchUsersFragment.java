@@ -28,13 +28,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SearchUsersFragment extends Fragment {
-
-    private RecyclerView recyclerView;
-    private ProgressBar progressBar;
-    private TextView emptyView;
-    private TextView sectionTitle;
-
+public class SearchUsersFragment extends BaseFragment {
     private SearchUsersListAdapter adapter;
     private final ApiClient apiClient = new ApiClient();
     private GithubApiService apiService;
@@ -293,43 +287,25 @@ public class SearchUsersFragment extends Fragment {
         }
     }
 
-    private void showLoading(boolean loading) {
-        progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
-        recyclerView.setVisibility(loading ? View.INVISIBLE : View.VISIBLE);
-        emptyView.setVisibility(View.GONE);
-        updateSectionTitle();
-    }
-
-    private void showEmpty(String msg) {
-        progressBar.setVisibility(View.GONE);
-        recyclerView.setVisibility(View.GONE);
-        emptyView.setVisibility(View.VISIBLE);
-        emptyView.setText(msg);
-    }
-
-    private void showList() {
-        progressBar.setVisibility(View.GONE);
-        emptyView.setVisibility(View.GONE);
-        recyclerView.setVisibility(View.VISIBLE);
-        updateSectionTitle();
-    }
-
-    private void updateSectionTitle() {
-        if (sectionTitle == null) {
-            return;
-        }
+    @Nullable
+    @Override
+    protected String getSectionTitle() {
         if (listMode == ListMode.FOLLOWERS) {
-            sectionTitle.setText(R.string.section_followers);
-            sectionTitle.setVisibility(View.VISIBLE);
+            return getString(R.string.section_followers);
         } else if (listMode == ListMode.SEARCH) {
             if (lastSearchQuery != null && !lastSearchQuery.isEmpty()) {
-                sectionTitle.setText(getString(R.string.section_search_results_for, lastSearchQuery));
+                return getString(R.string.section_search_results_for, lastSearchQuery);
             } else {
-                sectionTitle.setText(R.string.section_search_results);
+                return getString(R.string.section_search_results);
             }
-            sectionTitle.setVisibility(View.VISIBLE);
-        } else {
-            sectionTitle.setVisibility(View.GONE);
         }
+        return null; // Trả về null để ẩn tiêu đề
+    }
+    @Override
+    protected void setupRecyclerView() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.addItemDecoration(new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL));
+        adapter = new SearchUsersListAdapter();
+        recyclerView.setAdapter(adapter);
     }
 }

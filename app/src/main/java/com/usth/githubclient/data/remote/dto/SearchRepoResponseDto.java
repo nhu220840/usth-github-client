@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 /**
- * DTO representing the payload returned by the GitHub search repositories endpoint.
+ * Lightweight DTO mirroring the GitHub search users response payload.
  */
 public final class SearchRepoResponseDto {
 

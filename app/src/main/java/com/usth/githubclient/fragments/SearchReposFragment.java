@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,17 +28,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SearchReposFragment extends Fragment {
-
-    private RecyclerView recyclerView;
-    private ProgressBar progressBar;
-    private TextView emptyView;
-    private TextView sectionTitle;
-
+public class SearchReposFragment extends BaseFragment {
     private SearchReposListAdapter adapter;
     private ApiClient apiClient = new ApiClient();
     private GithubApiService apiService;
-    private String authenticatedUsername;
     private String lastSearchQuery;
     private List<RepoDto> cachedRepos = new ArrayList<>();
 
@@ -152,42 +146,27 @@ public class SearchReposFragment extends Fragment {
             }
         });
     }
-
-    private void showLoading(boolean loading) {
-        progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
-        recyclerView.setVisibility(loading ? View.INVISIBLE : View.VISIBLE);
-        emptyView.setVisibility(View.GONE);
-        updateSectionTitle();
-    }
-
-    private void showEmpty(String msg) {
-        progressBar.setVisibility(View.GONE);
-        recyclerView.setVisibility(View.GONE);
-        emptyView.setVisibility(View.VISIBLE);
-        emptyView.setText(msg);
-    }
-
-    private void showList() {
-        progressBar.setVisibility(View.GONE);
-        emptyView.setVisibility(View.GONE);
-        recyclerView.setVisibility(View.VISIBLE);
-        updateSectionTitle();
-    }
-
-    private void updateSectionTitle() {
-        if (sectionTitle == null) return;
-        if (listMode == ListMode.REPOS) {
-            sectionTitle.setText("Your Repositories");
-            sectionTitle.setVisibility(View.VISIBLE);
-        } else if (listMode == ListMode.SEARCH) {
-            if (lastSearchQuery != null && !lastSearchQuery.isEmpty()) {
-                sectionTitle.setText("Search results for \"" + lastSearchQuery + "\"");
-            } else {
-                sectionTitle.setText("Search results");
-            }
-            sectionTitle.setVisibility(View.VISIBLE);
-        } else {
-            sectionTitle.setVisibility(View.GONE);
+    @Nullable
+    @Override
+    protected String getSectionTitle() {
+        switch (listMode) {
+            case REPOS:
+                return getString(R.string.section_repositories); // "Your Repositories"
+            case SEARCH:
+                if (lastSearchQuery != null && !lastSearchQuery.isEmpty()) {
+                    return getString(R.string.section_search_results_for, lastSearchQuery);
+                } else {
+                    return getString(R.string.section_search_results);
+                }
+            default:
+                return null; // Trả về null để ẩn tiêu đề
         }
+    }
+    @Override
+    protected void setupRecyclerView() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.addItemDecoration(new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL));
+        adapter = new SearchReposListAdapter();
+        recyclerView.setAdapter(adapter);
     }
 }

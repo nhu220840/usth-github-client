@@ -100,7 +100,7 @@ public class AuthenticationActivity extends AppCompatActivity {
 
             if (pat.isEmpty()) {
                 txtStatus.setVisibility(View.VISIBLE);
-                txtStatus.setText("Vui lòng dán PAT");
+                txtStatus.setText("Please enter your PAT");
                 return;
             }
             viewModel.signInWithPat(pat, identifier);
