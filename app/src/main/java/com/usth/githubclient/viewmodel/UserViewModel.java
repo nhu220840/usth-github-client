@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.usth.githubclient.data.remote.ApiClient;
-import com.usth.githubclient.data.remote.GithubApiService;
 import com.usth.githubclient.data.remote.dto.UserDto;
 import com.usth.githubclient.data.repository.AuthRepository;
 import com.usth.githubclient.data.repository.UserRepository;
@@ -56,8 +55,7 @@ public class UserViewModel extends ViewModel {
 
     private static UserRepository buildDefaultUserRepository() {
         ApiClient apiClient = new ApiClient();
-        GithubApiService service = apiClient.createService(GithubApiService.class);
-        return new UserRepositoryImpl(service);
+        return new UserRepositoryImpl(apiClient);
     }
 
     public LiveData<UserUiState> getUiState() {

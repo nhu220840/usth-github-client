@@ -1,47 +1,55 @@
 package com.usth.githubclient.data.repository;
 
+import androidx.annotation.NonNull;
+
+import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
-import java.util.List;
-import retrofit2.Call;
 
+import java.util.List;
+
+import retrofit2.Call;
 /**
  * Implementation of UserRepository that fetches data from the remote GitHub API.
  */
 public class UserRepositoryImpl implements UserRepository {
 
-    private final GithubApiService apiService;
+    private final ApiClient apiClient;
 
-    // Dependency Injection: The ApiService is provided via the constructor.
+    // Dependency Injection: The ApiClient is provided via the constructor.
     // Điều này giúp việc kiểm thử (testing) dễ dàng hơn.
-    public UserRepositoryImpl(GithubApiService apiService) {
-        this.apiService = apiService;
+    public UserRepositoryImpl(@NonNull ApiClient apiClient) {
+        this.apiClient = apiClient;
+    }
+
+    private GithubApiService apiService() {
+        return apiClient.createService(GithubApiService.class);
     }
 
     @Override
     public Call<UserDto> getUser(String username) {
-        // Delegate the network call to the injected ApiService.
-        return apiService.getUser(username);
+        // Delegate the network call to the ApiService instance created from ApiClient.
+        return apiService().getUser(username);
     }
 
     @Override
     public Call<List<UserDto>> getFollowers(String username, int perPage, int page) {
-        return apiService.getFollowers(username, perPage, page);
+        return apiService().getFollowers(username, perPage, page);
     }
 
     @Override
     public Call<List<UserDto>> getFollowing(String username, int perPage, int page) {
-        return apiService.getFollowing(username, perPage, page);
+        return apiService().getFollowing(username, perPage, page);
     }
 
     @Override
     public Call<UserDto> authenticate() {
-        return apiService.authenticate();
+        return apiService().authenticate();
     }
 
     @Override
     public Call<SearchUsersResponseDto> searchUsers(String query, int page, int perPage) {
-        return apiService.searchUsers(query, page, perPage);
+        return apiService().searchUsers(query, page, perPage);
     }
 }

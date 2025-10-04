@@ -3,7 +3,6 @@ package com.usth.githubclient.data.repository;
 import android.annotation.SuppressLint;
 
 import com.usth.githubclient.data.remote.ApiClient;
-import com.usth.githubclient.data.remote.GithubApiService;
 import com.usth.githubclient.data.remote.dto.RepoDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
 import com.usth.githubclient.domain.mapper.RepoMapper;
@@ -11,11 +10,13 @@ import com.usth.githubclient.domain.mapper.UserMapper;
 import com.usth.githubclient.domain.model.GitHubUserProfileDataEntry;
 import com.usth.githubclient.domain.model.ReposDataEntry;
 import com.usth.githubclient.domain.model.UserSessionData;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
 import retrofit2.Response;
 
 /**
@@ -28,19 +29,23 @@ public final class AuthRepository {
     private static final String DEFAULT_SORT = "updated";
 
     private final ApiClient apiClient;
-    // Bỏ apiService khỏi constructor vì chúng ta sẽ tạo nó khi cần
+    private final UserRepository userRepository;
+    private final RepoRepository repoRepository;
     private final UserMapper userMapper;
     private final RepoMapper repoMapper;
 
     private UserSessionData cachedSession;
 
-    // Sửa constructor: Bỏ GithubApiService ra
     public AuthRepository(
             ApiClient apiClient,
+            UserRepository userRepository,
+            RepoRepository repoRepository,
             UserMapper userMapper,
             RepoMapper repoMapper
     ) {
         this.apiClient = Objects.requireNonNull(apiClient, "apiClient == null");
+        this.userRepository = Objects.requireNonNull(userRepository, "userRepository == null");
+        this.repoRepository = Objects.requireNonNull(repoRepository, "repoRepository == null");
         this.userMapper = Objects.requireNonNull(userMapper, "userMapper == null");
         this.repoMapper = Objects.requireNonNull(repoMapper, "repoMapper == null");
     }
@@ -53,11 +58,11 @@ public final class AuthRepository {
 
         // 1. Tạo một service mới với token được cung cấp
         // Điều này đảm bảo request chắc chắn có header xác thực
-        GithubApiService service = apiClient.createService(personalAccessToken, GithubApiService.class);
+        apiClient.setAuthToken(personalAccessToken);
 
         // 2. Dùng service vừa tạo để gọi API
-        GitHubUserProfileDataEntry profile = fetchAuthenticatedUser(service);
-        List<ReposDataEntry> repositories = fetchAuthenticatedRepositories(service);
+        GitHubUserProfileDataEntry profile = fetchAuthenticatedUser();
+        List<ReposDataEntry> repositories = fetchAuthenticatedRepositories();
 
         cachedSession = UserSessionData.builder(profile.getUsername(), personalAccessToken)
                 .tokenType("Bearer")
@@ -82,8 +87,8 @@ public final class AuthRepository {
     }
 
     // Sửa các phương thức fetch để nhận vào GithubApiService
-    private GitHubUserProfileDataEntry fetchAuthenticatedUser(GithubApiService service) throws IOException {
-        Response<UserDto> response = service.authenticate().execute();
+    private GitHubUserProfileDataEntry fetchAuthenticatedUser() throws IOException {
+        Response<UserDto> response = userRepository.authenticate().execute();
         if (response.isSuccessful() && response.body() != null) {
             return userMapper.map(response.body());
         }
@@ -91,9 +96,9 @@ public final class AuthRepository {
         throw buildException("Unable to fetch authenticated user", response);
     }
 
-    private List<ReposDataEntry> fetchAuthenticatedRepositories(GithubApiService service) throws IOException {
-        Response<List<RepoDto>> response = service
-                .getAuthenticatedRepositories(DEFAULT_REPO_PER_PAGE, DEFAULT_REPO_PAGE, DEFAULT_SORT)
+    private List<ReposDataEntry> fetchAuthenticatedRepositories() throws IOException {
+        Response<List<RepoDto>> response = repoRepository
+                .getAuthenticatedRepositories(DEFAULT_REPO_PAGE, DEFAULT_REPO_PER_PAGE, DEFAULT_SORT)
                 .execute();
         if (response.isSuccessful() && response.body() != null) {
             return repoMapper.mapList(response.body());
