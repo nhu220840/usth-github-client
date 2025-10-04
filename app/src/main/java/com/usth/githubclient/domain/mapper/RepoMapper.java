@@ -1,5 +1,6 @@
 package com.usth.githubclient.domain.mapper;
 
+// Các import cần thiết.
 import com.usth.githubclient.data.remote.dto.RepoDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
 import com.usth.githubclient.domain.model.ReposDataEntry;
@@ -11,24 +12,38 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Maps {@link RepoDto} responses to domain level {@link ReposDataEntry} values.
+ * Ánh xạ (Maps) các đối tượng {@link RepoDto} từ API thành các đối tượng
+ * {@link ReposDataEntry} của tầng domain.
  */
 public final class RepoMapper {
 
+    // RepoMapper phụ thuộc vào UserMapper. Điều này là cần thiết vì một đối tượng RepoDto
+    // chứa một đối tượng UserDto (thông tin về chủ sở hữu - owner).
     private final UserMapper userMapper;
 
+    // Sử dụng Constructor Injection để nhận UserMapper.
+    // Điều này giúp RepoMapper có thể tái sử dụng logic của UserMapper.
     public RepoMapper(UserMapper userMapper) {
         this.userMapper = Objects.requireNonNull(userMapper, "userMapper == null");
     }
 
+    /**
+     * Chuyển đổi một đối tượng RepoDto từ API thành một đối tượng domain ReposDataEntry.
+     * @param dto Đối tượng thô được lấy từ service API.
+     * @return Đối tượng model mô tả cùng một kho lưu trữ.
+     */
     public ReposDataEntry map(RepoDto dto) {
+        // Kiểm tra null để đảm bảo an toàn.
         Objects.requireNonNull(dto, "dto == null");
 
+        // Yêu cầu các trường bắt buộc phải có giá trị.
         String name = requireNonEmpty(dto.getName(), "name");
         String htmlUrl = requireNonEmpty(dto.getHtmlUrl(), "htmlUrl");
 
+        // Bắt đầu tạo đối tượng ReposDataEntry bằng mẫu thiết kế Builder.
         ReposDataEntry.Builder builder = ReposDataEntry.builder(dto.getId(), name, htmlUrl);
 
+        // Chuẩn hóa và gán các giá trị tùy chọn (optional).
         String fullName = normalize(dto.getFullName());
         if (fullName != null) {
             builder.fullName(fullName);
@@ -44,6 +59,7 @@ public final class RepoMapper {
             builder.language(language);
         }
 
+        // Đảm bảo các giá trị số (count) là hợp lệ.
         builder.stargazersCount(safeCount(dto.getStargazersCount()));
         builder.forksCount(safeCount(dto.getForksCount()));
         builder.watchersCount(safeCount(dto.getWatchersCount()));
@@ -54,9 +70,11 @@ public final class RepoMapper {
             builder.defaultBranch(defaultBranch);
         }
 
+        // Gán các giá trị boolean.
         builder.isPrivate(dto.isPrivate());
         builder.isFork(dto.isFork());
 
+        // Phân tích và gán các giá trị ngày tháng.
         Instant createdAt = parseInstant(dto.getCreatedAt());
         if (createdAt != null) {
             builder.createdAt(createdAt);
@@ -72,28 +90,37 @@ public final class RepoMapper {
             builder.pushedAt(pushedAt);
         }
 
+        // **Điểm quan trọng**: Tái sử dụng UserMapper để ánh xạ đối tượng owner.
+        // Điều này tuân thủ nguyên tắc DRY (Don't Repeat Yourself).
         UserDto owner = dto.getOwner();
         if (owner != null) {
             builder.owner(userMapper.map(owner));
         }
 
+        // Xây dựng và trả về đối tượng ReposDataEntry cuối cùng.
         return builder.build();
     }
 
+    /**
+     * Ánh xạ một danh sách các đối tượng RepoDto sang một danh sách các đối tượng ReposDataEntry.
+     */
     public List<ReposDataEntry> mapList(List<RepoDto> dtos) {
         if (dtos == null || dtos.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptyList(); // Trả về một danh sách rỗng không thể thay đổi.
         }
 
         List<ReposDataEntry> entries = new ArrayList<>(dtos.size());
         for (RepoDto dto : dtos) {
             if (dto == null) {
-                continue;
+                continue; // Bỏ qua các phần tử null trong danh sách.
             }
-            entries.add(map(dto));
+            entries.add(map(dto)); // Tái sử dụng phương thức map cho từng đối tượng.
         }
+        // Trả về một danh sách không thể thay đổi (unmodifiable) để đảm bảo tính bất biến.
         return Collections.unmodifiableList(entries);
     }
+
+    // --- CÁC PHƯƠNG THỨC TRỢ GIÚP (tương tự UserMapper) ---
 
     private String requireNonEmpty(String value, String fieldName) {
         String normalized = normalize(value);

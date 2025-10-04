@@ -8,36 +8,48 @@ import java.util.Optional;
 import java.util.StringJoiner;
 
 /**
- * Domain level representation of the authenticated user session.
+ * Biểu diễn ở tầng domain của phiên đăng nhập người dùng đã được xác thực.
  */
 public final class UserSessionData {
 
+    // Tên người dùng.
     private final String username;
+    // Access token để xác thực với API.
     private final String accessToken;
+    // Loại token (ví dụ: "Bearer").
     private final String tokenType;
+    // Thời điểm token hết hạn (nếu có).
     private final Instant accessTokenExpiration;
+    // Thông tin hồ sơ chi tiết của người dùng.
     private final GitHubUserProfileDataEntry userProfile;
+    // Danh sách các kho của người dùng.
     private final List<ReposDataEntry> repositories;
+    // Thời điểm đồng bộ dữ liệu lần cuối.
     private final Instant lastSyncedAt;
 
+    // Constructor riêng tư, chỉ được gọi bởi Builder.
     private UserSessionData(Builder builder) {
         this.username = builder.username;
         this.accessToken = builder.accessToken;
         this.tokenType = builder.tokenType;
         this.accessTokenExpiration = builder.accessTokenExpiration;
         this.userProfile = builder.userProfile;
+        // Sao chép danh sách để đảm bảo tính bất biến.
         this.repositories = List.copyOf(builder.repositories);
         this.lastSyncedAt = builder.lastSyncedAt;
     }
 
+    // Phương thức tĩnh để bắt đầu xây dựng một phiên mới.
     public static Builder builder(String username, String accessToken) {
         return new Builder(username, accessToken);
     }
 
+    // Tạo một Builder mới từ một phiên đã có.
     public Builder toBuilder() {
         return new Builder(this);
     }
 
+    // --- Các phương thức Getter ---
     public String getUsername() {
         return username;
     }
@@ -67,14 +79,15 @@ public final class UserSessionData {
     }
 
     /**
-     * Returns {@code true} if an access token expiration is present and the provided moment is
-     * on or after that expiration instant.
+     * Trả về {@code true} nếu có thời gian hết hạn của token và
+     * thời điểm được cung cấp là bằng hoặc sau thời điểm hết hạn đó.
      */
     public boolean isTokenExpired(Instant moment) {
         Objects.requireNonNull(moment, "moment == null");
         return accessTokenExpiration != null && !moment.isBefore(accessTokenExpiration);
     }
 
+    // Kiểm tra xem token có hợp lệ tại một thời điểm nhất định hay không.
     public boolean hasValidToken(Instant moment) {
         return !accessToken.isEmpty() && !isTokenExpired(moment);
     }
@@ -112,6 +125,7 @@ public final class UserSessionData {
 
     @Override
     public String toString() {
+        // Access token được che đi để bảo mật khi ghi log.
         return new StringJoiner(", ", UserSessionData.class.getSimpleName() + "[", "]")
                 .add("username='" + username + '\'')
                 .add("accessToken='<redacted>'")
@@ -123,6 +137,9 @@ public final class UserSessionData {
                 .toString();
     }
 
+    /**
+     * Lớp Builder để xây dựng đối tượng UserSessionData.
+     */
     public static final class Builder {
 
         private final String username;
@@ -133,11 +150,13 @@ public final class UserSessionData {
         private List<ReposDataEntry> repositories = Collections.emptyList();
         private Instant lastSyncedAt;
 
+        // Constructor với các trường bắt buộc.
         private Builder(String username, String accessToken) {
             this.username = Objects.requireNonNull(username, "username == null");
             this.accessToken = Objects.requireNonNull(accessToken, "accessToken == null");
         }
 
+        // Constructor để sao chép từ một đối tượng đã có.
         private Builder(UserSessionData sessionData) {
             this.username = sessionData.username;
             this.accessToken = sessionData.accessToken;
@@ -148,6 +167,7 @@ public final class UserSessionData {
             this.lastSyncedAt = sessionData.lastSyncedAt;
         }
 
+        // Các phương thức để thiết lập giá trị.
         public Builder tokenType(String tokenType) {
             this.tokenType = tokenType;
             return this;
@@ -173,6 +193,7 @@ public final class UserSessionData {
             return this;
         }
 
+        // Phương thức để xây dựng đối tượng UserSessionData cuối cùng.
         public UserSessionData build() {
             if (repositories == null) {
                 repositories = Collections.emptyList();

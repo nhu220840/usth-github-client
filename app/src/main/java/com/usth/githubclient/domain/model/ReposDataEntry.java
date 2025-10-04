@@ -6,10 +6,11 @@ import java.util.Optional;
 import java.util.StringJoiner;
 
 /**
- * Immutable domain model describing a GitHub repository.
+ * Mô hình domain bất biến mô tả một kho GitHub.
  */
 public final class ReposDataEntry {
 
+    // Các trường dữ liệu của một kho.
     private final long id;
     private final String name;
     private final String fullName;
@@ -28,6 +29,7 @@ public final class ReposDataEntry {
     private final Instant pushedAt;
     private final GitHubUserProfileDataEntry owner;
 
+    // Constructor riêng tư, chỉ được gọi bởi lớp Builder bên trong.
     private ReposDataEntry(Builder builder) {
         this.id = builder.id;
         this.name = builder.name;
@@ -48,14 +50,19 @@ public final class ReposDataEntry {
         this.owner = builder.owner;
     }
 
+    // Phương thức tĩnh để bắt đầu quá trình xây dựng một đối tượng mới.
     public static Builder builder(long id, String name, String htmlUrl) {
         return new Builder(id, name, htmlUrl);
     }
 
+    // Tạo một Builder mới từ một đối tượng ReposDataEntry đã có.
     public Builder toBuilder() {
         return new Builder(this);
     }
 
+    // --- Các phương thức Getter ---
+    // Các trường tùy chọn (có thể null) được trả về dưới dạng Optional
+    // để buộc người dùng phải xử lý trường hợp null một cách an toàn.
     public long getId() {
         return id;
     }
@@ -198,11 +205,16 @@ public final class ReposDataEntry {
                 .toString();
     }
 
+    /**
+     * Lớp Builder giúp tạo đối tượng ReposDataEntry một cách linh hoạt.
+     */
     public static final class Builder {
 
+        // Các trường bắt buộc.
         private final long id;
         private final String name;
         private final String htmlUrl;
+        // Các trường tùy chọn.
         private String fullName;
         private String description;
         private String language;
@@ -218,6 +230,7 @@ public final class ReposDataEntry {
         private Instant pushedAt;
         private GitHubUserProfileDataEntry owner;
 
+        // Constructor cho Builder với các trường bắt buộc.
         private Builder(long id, String name, String htmlUrl) {
             if (id < 0L) {
                 throw new IllegalArgumentException("id must be greater than or equal to 0");
@@ -227,6 +240,7 @@ public final class ReposDataEntry {
             this.htmlUrl = Objects.requireNonNull(htmlUrl, "htmlUrl == null");
         }
 
+        // Constructor để tạo Builder từ một đối tượng đã có.
         private Builder(ReposDataEntry entry) {
             this.id = entry.id;
             this.name = entry.name;
@@ -247,6 +261,7 @@ public final class ReposDataEntry {
             this.owner = entry.owner;
         }
 
+        // Các phương thức để thiết lập giá trị cho các trường.
         public Builder fullName(String fullName) {
             this.fullName = fullName;
             return this;
@@ -329,9 +344,9 @@ public final class ReposDataEntry {
             return this;
         }
 
+        // Phương thức cuối cùng để xây dựng đối tượng ReposDataEntry.
         public ReposDataEntry build() {
             return new ReposDataEntry(this);
         }
     }
 }
-

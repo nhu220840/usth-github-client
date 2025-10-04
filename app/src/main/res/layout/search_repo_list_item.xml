@@ -82,7 +82,6 @@
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textStyle="bold"
                 tools:text="1,280 stars • 320 forks • 980 watchers • 12 issues" />
-
         </LinearLayout>
     </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>

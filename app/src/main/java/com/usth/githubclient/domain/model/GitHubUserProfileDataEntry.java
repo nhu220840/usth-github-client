@@ -6,14 +6,12 @@ import java.util.Optional;
 import java.util.StringJoiner;
 
 /**
- * Immutable domain representation of a GitHub user profile.
- * <p>
- * This class acts as the contract shared across the application layers when we work with
- * the details of a GitHub account. All optional attributes are exposed through {@link Optional}
- * to explicitly communicate their optional nature to collaborators working on other layers.
+ * Lớp biểu diễn một hồ sơ người dùng GitHub trong tầng domain, dưới dạng bất biến (immutable).
+ * Lớp này hoạt động như một "hợp đồng" dữ liệu sạch sẽ, được chia sẻ giữa các tầng của ứng dụng.
  */
 public final class GitHubUserProfileDataEntry {
 
+    // Các thuộc tính đều là 'final' để đảm bảo tính bất biến.
     private final long id;
     private final String username;
     private final String displayName;
@@ -30,6 +28,7 @@ public final class GitHubUserProfileDataEntry {
     private final Instant createdAt;
     private final Instant updatedAt;
 
+    // Constructor là 'private', buộc người dùng phải tạo đối tượng thông qua lớp Builder.
     private GitHubUserProfileDataEntry(Builder builder) {
         this.id = builder.id;
         this.username = builder.username;
@@ -49,23 +48,20 @@ public final class GitHubUserProfileDataEntry {
     }
 
     /**
-     * Creates a new builder with the mandatory identifier and username populated.
-     *
-     * @param id       Stable numeric identifier of the GitHub account as returned by the API.
-     * @param username Login of the account. Cannot be {@code null}.
-     * @return a builder instance ready to be configured.
+     * Phương thức factory tĩnh để tạo một Builder mới với các thuộc tính bắt buộc.
      */
     public static Builder builder(long id, String username) {
         return new Builder(id, username);
     }
 
     /**
-     * Creates a builder pre-populated with the data from the current instance allowing colleagues
-     * to derive new immutable instances with small mutations.
+     * Tạo một builder được điền sẵn dữ liệu từ đối tượng hiện tại.
      */
     public Builder toBuilder() {
         return new Builder(this);
     }
+
+    // --- CÁC PHƯƠNG THỨC GETTER ---
 
     public long getId() {
         return id;
@@ -75,6 +71,7 @@ public final class GitHubUserProfileDataEntry {
         return username;
     }
 
+    // Các getter cho thuộc tính tùy chọn trả về một Optional để xử lý null an toàn.
     public Optional<String> getDisplayName() {
         return Optional.ofNullable(displayName);
     }
@@ -127,75 +124,59 @@ public final class GitHubUserProfileDataEntry {
         return Optional.ofNullable(updatedAt);
     }
 
+    // Override các phương thức chuẩn của Java để đối tượng hoạt động đúng.
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof GitHubUserProfileDataEntry)) {
-            return false;
-        }
+        if (this == o) return true;
+        if (!(o instanceof GitHubUserProfileDataEntry)) return false;
         GitHubUserProfileDataEntry that = (GitHubUserProfileDataEntry) o;
-        return id == that.id
-                && publicReposCount == that.publicReposCount
-                && followersCount == that.followersCount
-                && followingCount == that.followingCount
-                && Objects.equals(username, that.username)
-                && Objects.equals(displayName, that.displayName)
-                && Objects.equals(avatarUrl, that.avatarUrl)
-                && Objects.equals(bio, that.bio)
-                && Objects.equals(company, that.company)
-                && Objects.equals(blogUrl, that.blogUrl)
-                && Objects.equals(email, that.email)
-                && Objects.equals(location, that.location)
-                && Objects.equals(profileUrl, that.profileUrl)
-                && Objects.equals(createdAt, that.createdAt)
-                && Objects.equals(updatedAt, that.updatedAt);
+        return id == that.id &&
+                publicReposCount == that.publicReposCount &&
+                followersCount == that.followersCount &&
+                followingCount == that.followingCount &&
+                Objects.equals(username, that.username) &&
+                Objects.equals(displayName, that.displayName) &&
+                Objects.equals(avatarUrl, that.avatarUrl) &&
+                Objects.equals(bio, that.bio) &&
+                Objects.equals(company, that.company) &&
+                Objects.equals(blogUrl, that.blogUrl) &&
+                Objects.equals(email, that.email) &&
+                Objects.equals(location, that.location) &&
+                Objects.equals(profileUrl, that.profileUrl) &&
+                Objects.equals(createdAt, that.createdAt) &&
+                Objects.equals(updatedAt, that.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-                id,
-                username,
-                displayName,
-                avatarUrl,
-                bio,
-                company,
-                blogUrl,
-                email,
-                location,
-                publicReposCount,
-                followersCount,
-                followingCount,
-                profileUrl,
-                createdAt,
-                updatedAt
-        );
+        return Objects.hash(id, username, displayName, avatarUrl, bio, company, blogUrl, email, location, publicReposCount, followersCount, followingCount, profileUrl, createdAt, updatedAt);
     }
 
     @Override
     public String toString() {
         return new StringJoiner(", ", GitHubUserProfileDataEntry.class.getSimpleName() + "[", "]")
                 .add("id=" + id)
-                .add("username='" + username + '\'')
-                .add("displayName='" + displayName + '\'')
-                .add("avatarUrl='" + avatarUrl + '\'')
-                .add("bio='" + bio + '\'')
-                .add("company='" + company + '\'')
-                .add("blogUrl='" + blogUrl + '\'')
-                .add("email='" + email + '\'')
-                .add("location='" + location + '\'')
+                .add("username='" + username + "'")
+                .add("displayName='" + displayName + "'")
+                .add("avatarUrl='" + avatarUrl + "'")
+                .add("bio='" + bio + "'")
+                .add("company='" + company + "'")
+                .add("blogUrl='" + blogUrl + "'")
+                .add("email='" + email + "'")
+                .add("location='" + location + "'")
                 .add("publicReposCount=" + publicReposCount)
                 .add("followersCount=" + followersCount)
                 .add("followingCount=" + followingCount)
-                .add("profileUrl='" + profileUrl + '\'')
+                .add("profileUrl='" + profileUrl + "'")
                 .add("createdAt=" + createdAt)
                 .add("updatedAt=" + updatedAt)
                 .toString();
     }
 
-    /** Builder used to configure and create immutable {@link GitHubUserProfileDataEntry} values. */
+    /**
+     * Lớp Builder (theo mẫu thiết kế Builder): Cung cấp một API linh hoạt và dễ đọc
+     * để khởi tạo một đối tượng phức tạp.
+     */
     public static final class Builder {
 
         private final long id;
@@ -214,6 +195,7 @@ public final class GitHubUserProfileDataEntry {
         private Instant createdAt;
         private Instant updatedAt;
 
+        // Constructor của Builder nhận vào các giá trị bắt buộc.
         private Builder(long id, String username) {
             if (id < 0L) {
                 throw new IllegalArgumentException("id must be greater than or equal to 0");
@@ -222,6 +204,7 @@ public final class GitHubUserProfileDataEntry {
             this.username = Objects.requireNonNull(username, "username == null");
         }
 
+        // Constructor để tạo builder từ một đối tượng đã có.
         private Builder(GitHubUserProfileDataEntry entry) {
             this.id = entry.id;
             this.username = entry.username;
@@ -240,6 +223,7 @@ public final class GitHubUserProfileDataEntry {
             this.updatedAt = entry.updatedAt;
         }
 
+        // Các phương thức "setter" của Builder, trả về chính builder để gọi chuỗi.
         public Builder displayName(String displayName) {
             this.displayName = displayName;
             return this;
@@ -314,6 +298,10 @@ public final class GitHubUserProfileDataEntry {
             return this;
         }
 
+        /**
+         * Phương thức build() sẽ gọi constructor private của lớp cha để tạo ra đối tượng
+         * bất biến cuối cùng.
+         */
         public GitHubUserProfileDataEntry build() {
             return new GitHubUserProfileDataEntry(this);
         }

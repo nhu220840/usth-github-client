@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="48dp"
-        android:text="Dark Mode"
+        android:text="@string/settings_dark_mode"
         android:textAppearance="?attr/textAppearanceBodyLarge"/>
 
     <Button
@@ -19,6 +19,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_gravity="center_horizontal"
-        android:text="Sign Out" />
+        android:text="@string/settings_sign_out"/>
 
 </LinearLayout>

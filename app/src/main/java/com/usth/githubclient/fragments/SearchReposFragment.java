@@ -1,12 +1,13 @@
 package com.usth.githubclient.fragments;
 
+// Các import cần thiết.
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProvider; // Dùng để khởi tạo và lấy ViewModel.
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.usth.githubclient.R;
@@ -14,35 +15,47 @@ import com.usth.githubclient.adapters.SearchReposListAdapter;
 import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
 import com.usth.githubclient.data.remote.dto.SearchRepoResponseDto;
-import com.usth.githubclient.viewmodel.SearchReposViewModel; // Import ViewModel
+import com.usth.githubclient.viewmodel.SearchReposViewModel; // Import ViewModel.
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+// Kế thừa từ BaseFragment để tái sử dụng logic quản lý UI.
 public class SearchReposFragment extends BaseFragment {
+    // Adapter cho RecyclerView.
     private SearchReposListAdapter adapter;
-    private GithubApiService apiService; // Giữ lại để dùng cho chức năng search
-    private SearchReposViewModel viewModel; // Thêm ViewModel
+    // apiService được giữ lại để dùng cho chức năng tìm kiếm (chức năng này hiện chưa nằm trong ViewModel).
+    private GithubApiService apiService;
+    // Khai báo ViewModel.
+    private SearchReposViewModel viewModel;
+    // Lưu lại query tìm kiếm cuối cùng để kiểm tra khi nhận kết quả.
     private String lastSearchQuery;
 
+    // Enum để quản lý trạng thái của danh sách: đang hiển thị repo của người dùng hay kết quả tìm kiếm.
     private enum ListMode { REPOS, SEARCH }
     private ListMode listMode = ListMode.REPOS;
 
+    // Phương thức factory để tạo Fragment.
     public static SearchReposFragment newInstance() {
         return new SearchReposFragment();
     }
 
+    // Được gọi khi Fragment được tạo.
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Khởi tạo ViewModel
+        // Khởi tạo ViewModel. Android sẽ tự động quản lý vòng đời của nó,
+        // giúp giữ lại dữ liệu khi xoay màn hình.
         viewModel = new ViewModelProvider(this).get(SearchReposViewModel.class);
+        // Khởi tạo service API.
         apiService = new ApiClient().createService(GithubApiService.class);
     }
 
+    // Được gọi để tạo View cho Fragment.
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // "Thổi phồng" layout và ánh xạ các view.
         View v = inflater.inflate(R.layout.fragment_general_list, container, false);
         recyclerView = v.findViewById(R.id.recycler);
         progressBar = v.findViewById(R.id.progress);
@@ -51,10 +64,13 @@ public class SearchReposFragment extends BaseFragment {
 
         setupRecyclerView();
 
-        // Lắng nghe dữ liệu từ ViewModel
+        // ---- ĐIỂM CỐT LÕI CỦA MVVM ----
+        // 1. Lắng nghe (observe) LiveData chứa danh sách repo từ ViewModel.
+        // getViewLifecycleOwner() đảm bảo rằng việc lắng nghe sẽ tự động hủy khi Fragment bị hủy.
         viewModel.getMyRepos().observe(getViewLifecycleOwner(), repos -> {
-            if (listMode == ListMode.REPOS) {
-                adapter.submit(repos);
+            // Khi có dữ liệu mới từ ViewModel, đoạn mã này sẽ được thực thi.
+            if (listMode == ListMode.REPOS) { // Chỉ cập nhật nếu đang ở chế độ xem repo của tôi.
+                adapter.submit(repos); // Gửi danh sách mới cho Adapter.
                 if (repos.isEmpty()) {
                     showEmpty("You don't have any repositories yet.");
                 } else {
@@ -63,13 +79,14 @@ public class SearchReposFragment extends BaseFragment {
             }
         });
 
+        // 2. Lắng nghe LiveData chứa thông báo lỗi từ ViewModel.
         viewModel.getError().observe(getViewLifecycleOwner(), errorMsg -> {
             if (listMode == ListMode.REPOS) {
                 showEmpty(errorMsg);
             }
         });
 
-        // Chỉ hiển thị repo của tôi khi không có query tìm kiếm
+        // Mặc định, hiển thị danh sách repo của người dùng.
         if (lastSearchQuery == null || lastSearchQuery.isEmpty()) {
             displayMyRepos();
         }
@@ -77,8 +94,9 @@ public class SearchReposFragment extends BaseFragment {
         return v;
     }
 
-    // Phương thức search không thay đổi nhiều
+    // Phương thức được MainActivity gọi khi người dùng tìm kiếm.
     public void submitQuery(String query) {
+        // Nếu query rỗng, quay lại hiển thị danh sách repo của tôi.
         if (query == null || query.trim().isEmpty()) {
             displayMyRepos();
             return;
@@ -88,6 +106,8 @@ public class SearchReposFragment extends BaseFragment {
         lastSearchQuery = q;
         showLoading(true);
 
+        // VẤN ĐỀ: Logic tìm kiếm này vẫn nằm trong Fragment.
+        // Cải tiến: Nên chuyển logic này vào ViewModel để quản lý tập trung.
         apiService.searchRepos(q, 1, 30).enqueue(new Callback<SearchRepoResponseDto>() {
             @Override
             public void onResponse(Call<SearchRepoResponseDto> call, Response<SearchRepoResponseDto> response) {
@@ -113,23 +133,26 @@ public class SearchReposFragment extends BaseFragment {
         });
     }
 
+    // Được gọi khi người dùng xóa query tìm kiếm.
     public void showMyRepos() {
         displayMyRepos();
     }
 
+    // Phương thức để chuyển sang chế độ hiển thị repo của người dùng.
     private void displayMyRepos() {
         listMode = ListMode.REPOS;
         lastSearchQuery = null;
         showLoading(true);
-        // Yêu cầu ViewModel tải dữ liệu.
-        // ViewModel sẽ tự biết nếu đã có dữ liệu rồi thì sẽ không tải lại
+        // Fragment chỉ cần yêu cầu ViewModel tải dữ liệu.
+        // ViewModel sẽ tự quyết định có cần gọi lại API hay không, giúp tránh
+        // việc tải lại dữ liệu không cần thiết khi xoay màn hình.
         viewModel.loadMyRepos();
     }
 
+    // Trả về tiêu đề cho sección dựa trên trạng thái hiện tại.
     @Nullable
     @Override
     protected String getSectionTitle() {
-        // ... giữ nguyên
         switch (listMode) {
             case REPOS:
                 return getString(R.string.section_repositories);
@@ -144,12 +167,12 @@ public class SearchReposFragment extends BaseFragment {
         }
     }
 
+    // Thiết lập RecyclerView.
     @Override
     protected void setupRecyclerView() {
-        // ... giữ nguyên
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.addItemDecoration(new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL));
-        adapter = new SearchReposListAdapter();
+        adapter = new SearchReposListAdapter(apiService);
         recyclerView.setAdapter(adapter);
     }
 }

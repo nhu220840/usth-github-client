@@ -20,14 +20,23 @@ import com.usth.githubclient.fragments.UserProfileFragment;
 
 public class UserProfileActivity extends AppCompatActivity {
 
+    // Khóa để truyền username qua Intent.
     public static final String EXTRA_USERNAME = "com.usth.githubclient.extra.EXTRA_USERNAME";
 
+    // Đối tượng ViewBinding để truy cập các view trong layout.
     private ActivityUserProfileBinding binding;
 
+    /**
+     * Phương thức tĩnh để tạo Intent khởi động Activity này một cách an toàn.
+     * @param context Context hiện tại.
+     * @param username Tên người dùng cần hiển thị. Nếu null, sẽ hiển thị hồ sơ người dùng đã đăng nhập.
+     * @return Intent đã được cấu hình.
+     */
     @NonNull
     public static Intent createIntent(@NonNull Context context, @Nullable String username) {
         Intent intent = new Intent(context, UserProfileActivity.class);
         if (!TextUtils.isEmpty(username)) {
+            // Đính kèm username vào Intent nếu có.
             intent.putExtra(EXTRA_USERNAME, username);
         }
         return intent;
@@ -36,33 +45,51 @@ public class UserProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Khởi tạo ViewBinding.
         binding = ActivityUserProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Thiết lập Toolbar.
         setupToolbar();
 
+        // Chỉ thêm Fragment khi Activity được tạo lần đầu.
         if (savedInstanceState == null) {
             attachProfileFragment(resolveUsername());
         }
     }
 
+    // Cấu hình Toolbar với nút back và tiêu đề.
     private void setupToolbar() {
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
+            // Hiển thị nút "Up" (back) trên Toolbar.
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(R.string.user_profile_title);
         }
+        // Xử lý sự kiện khi nhấn nút back trên Toolbar.
         binding.toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
+    /**
+     * Gắn UserProfileFragment vào container của Activity.
+     * @param username Tên người dùng để truyền cho Fragment.
+     */
     private void attachProfileFragment(@Nullable String username) {
+        // Tạo một thể hiện mới của UserProfileFragment.
         UserProfileFragment fragment = UserProfileFragment.newInstance(username);
+        // Bắt đầu một transaction để thay thế container bằng Fragment.
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.user_profile_fragment_container, fragment, UserProfileFragment.TAG)
                 .commit();
     }
 
+    /**
+     * Xác định username cần hiển thị.
+     * Ưu tiên username được truyền qua Intent.
+     * Nếu không có, lấy username từ session của người dùng đã đăng nhập.
+     * @return Tên người dùng hoặc null.
+     */
     @Nullable
     private String resolveUsername() {
         Intent intent = getIntent();
@@ -72,6 +99,7 @@ public class UserProfileActivity extends AppCompatActivity {
                 return username.trim();
             }
         }
+        // Nếu không có username trong Intent, kiểm tra session.
         UserSessionData session = ServiceLocator.getInstance().authRepository().getCachedSession();
         if (session != null) {
             return session.getUsername();
@@ -79,42 +107,47 @@ public class UserProfileActivity extends AppCompatActivity {
         return null;
     }
 
+    // Xử lý sự kiện khi nhấn nút "Up" (back) trên ActionBar.
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
     }
 
+    // Khởi tạo menu trên Toolbar.
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Gắn menu vào toolbar
+        // Gắn menu (từ file XML) vào toolbar.
         getMenuInflater().inflate(R.menu.user_profile_menu, menu);
         return true;
     }
 
+    // Xử lý sự kiện khi một item trên menu được chọn.
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        // Xử lý khi item trên menu được chọn
+        // Kiểm tra ID của item được chọn.
         if (item.getItemId() == R.id.action_settings) {
-            // Khi nhấn nút settings, chuyển sang SettingsFragment
+            // Khi nhấn nút settings, chuyển sang SettingsFragment.
             showSettingsFragment();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    // Hiển thị SettingsFragment.
     private void showSettingsFragment() {
-        // Thay thế fragment hiện tại bằng SettingsFragment
+        // Thay thế fragment hiện tại bằng SettingsFragment.
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.user_profile_fragment_container, new SettingsFragment())
-                .addToBackStack(null) // Cho phép quay lại fragment trước đó
+                .addToBackStack(null) // Cho phép quay lại fragment trước đó bằng nút back.
                 .commit();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // Giải phóng đối tượng binding để tránh rò rỉ bộ nhớ.
         binding = null;
     }
 }

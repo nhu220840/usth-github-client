@@ -16,7 +16,6 @@
         android:theme="@style/Theme.USTHGitHubClient"
         tools:targetApi="33" >
 
-        <!-- Authentication display and also LAUNCHER (observe ViewModel, render UI) -->
         <activity
             android:name=".activities.AuthenticationActivity"
             android:exported="true">
@@ -26,9 +25,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activities.MainActivity"
             android:exported="false" />
+
         <activity
             android:name=".activities.UserProfileActivity"
             android:exported="false" />

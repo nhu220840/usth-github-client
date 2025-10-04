@@ -3,10 +3,16 @@ package com.usth.githubclient.data.remote.dto;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Raw representation of a GitHub user as returned by the public REST API.
+ * Lớp biểu diễn thô (raw representation) của một người dùng GitHub như được trả về bởi public REST API.
+ * Các thuộc tính trong lớp này phải khớp chính xác với các khóa (keys) trong đối tượng JSON
+ * mà API trả về. Lớp này không chứa bất kỳ logic nghiệp vụ nào.
  */
 public final class UserDto {
 
+    // @SerializedName: Annotation này của thư viện Gson nói rằng:
+    // "Hãy tìm khóa 'id' trong JSON và gán giá trị của nó cho thuộc tính 'id' này".
+    // Điều này rất hữu ích khi bạn muốn đặt tên thuộc tính trong Java khác với
+    // tên khóa trong JSON (ví dụ: "avatar_url" trong JSON thành "avatarUrl" trong Java).
     @SerializedName("id")
     private long id;
 
@@ -52,9 +58,17 @@ public final class UserDto {
     @SerializedName("updated_at")
     private String updatedAt;
 
-    /** Required by Gson. */
+    /**
+     * Constructor rỗng (không có tham số).
+     * Đây là yêu cầu bắt buộc để thư viện Gson có thể tự tạo ra các thể hiện (instances)
+     * của lớp này khi phân tích (parse) JSON.
+     */
     public UserDto() {
     }
+
+    // --- CÁC PHƯƠNG THỨC GETTER ---
+    // Cung cấp cách để các lớp khác (như UserMapper) có thể truy cập vào các giá trị
+    // private của đối tượng DTO này.
 
     public long getId() {
         return id;

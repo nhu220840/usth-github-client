@@ -3,7 +3,7 @@ package com.usth.githubclient.data.remote.dto;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Representation of a single email entry returned by the GitHub REST API.
+ * Biểu diễn của một mục email được trả về bởi API REST của GitHub.
  */
 public final class UserEmailDto {
 
@@ -19,7 +19,7 @@ public final class UserEmailDto {
     @SerializedName("visibility")
     private String visibility;
 
-    /** Required by Gson. */
+    /** Cần thiết bởi Gson. */
     public UserEmailDto() {
     }
 
