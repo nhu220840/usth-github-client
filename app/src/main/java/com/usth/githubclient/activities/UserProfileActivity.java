@@ -18,6 +18,9 @@ import com.usth.githubclient.domain.model.UserSessionData;
 import com.usth.githubclient.fragments.SettingsFragment;
 import com.usth.githubclient.fragments.UserProfileFragment;
 
+/**
+ * Activity để hiển thị hồ sơ của một người dùng.
+ */
 public class UserProfileActivity extends AppCompatActivity {
 
     // Khóa để truyền username qua Intent.
@@ -25,6 +28,11 @@ public class UserProfileActivity extends AppCompatActivity {
 
     // Đối tượng ViewBinding để truy cập các view trong layout.
     private ActivityUserProfileBinding binding;
+
+    // --- BẮT ĐẦU THAY ĐỔI ---
+    // Cờ để xác định xem hồ sơ đang xem có phải là của người dùng đã đăng nhập hay không.
+    private boolean isViewingAuthenticatedUserProfile = false;
+    // --- KẾT THÚC THAY ĐỔI ---
 
     /**
      * Phương thức tĩnh để tạo Intent khởi động Activity này một cách an toàn.
@@ -51,6 +59,13 @@ public class UserProfileActivity extends AppCompatActivity {
 
         // Thiết lập Toolbar.
         setupToolbar();
+
+        // --- BẮT ĐẦU THAY ĐỔI ---
+        // Xác định xem người dùng có đang xem hồ sơ của chính họ không.
+        // Điều này đúng nếu không có username nào được truyền qua Intent,
+        // nghĩa là activity được khởi chạy từ tab Profile chính.
+        isViewingAuthenticatedUserProfile = getIntent().getStringExtra(EXTRA_USERNAME) == null;
+        // --- KẾT THÚC THAY ĐỔI ---
 
         // Chỉ thêm Fragment khi Activity được tạo lần đầu.
         if (savedInstanceState == null) {
@@ -119,6 +134,17 @@ public class UserProfileActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Gắn menu (từ file XML) vào toolbar.
         getMenuInflater().inflate(R.menu.user_profile_menu, menu);
+
+        // --- BẮT ĐẦU THAY ĐỔI ---
+        // Tìm item settings trong menu.
+        MenuItem settingsItem = menu.findItem(R.id.action_settings);
+        if (settingsItem != null) {
+            // Thiết lập trạng thái hiển thị của nút settings dựa vào việc
+            // người dùng có đang xem hồ sơ của chính mình hay không.
+            settingsItem.setVisible(isViewingAuthenticatedUserProfile);
+        }
+        // --- KẾT THÚC THAY ĐỔI ---
+
         return true;
     }
 
