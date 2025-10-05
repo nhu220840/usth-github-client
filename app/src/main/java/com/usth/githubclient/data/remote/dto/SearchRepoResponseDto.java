@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 /**
- * Lightweight DTO mirroring the GitHub search users response payload.
+ * Lightweight DTO mirroring the GitHub search repositories response payload.
  */
 public final class SearchRepoResponseDto {
 
@@ -14,7 +14,7 @@ public final class SearchRepoResponseDto {
     @SerializedName("incomplete_results")
     private boolean incompleteResults;
 
-    // Quan trọng: Annotation này là cần thiết để Gson ánh xạ đúng
+    // This annotation is necessary for Gson to map correctly.
     @SerializedName("items")
     private List<RepoDto> items;
 
