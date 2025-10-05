@@ -26,6 +26,10 @@ public class UserProfileActivity extends AppCompatActivity {
     public static final String EXTRA_USERNAME = "com.usth.githubclient.extra.EXTRA_USERNAME";
 
     private ActivityUserProfileBinding binding;
+    // --- START OF CHANGE ---
+    // A flag to determine if the current profile being viewed belongs to the authenticated user.
+    private boolean isViewingAuthenticatedUserProfile = false;
+    // --- END OF CHANGE ---
 
     /**
      * Creates an Intent to start this activity.
@@ -49,6 +53,13 @@ public class UserProfileActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setupToolbar();
+
+        // --- START OF CHANGE ---
+        // Determine if the user is viewing their own profile. This is true if no username
+        // is passed via the Intent, meaning the activity was likely launched from the main
+        // profile tab.
+        isViewingAuthenticatedUserProfile = getIntent().getStringExtra(EXTRA_USERNAME) == null;
+        // --- END OF CHANGE ---
 
         if (savedInstanceState == null) {
             attachProfileFragment(resolveUsername());
@@ -109,8 +120,20 @@ public class UserProfileActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu for the toolbar.
         getMenuInflater().inflate(R.menu.user_profile_menu, menu);
+
+        // --- START OF CHANGE ---
+        // Find the settings item in the menu.
+        MenuItem settingsItem = menu.findItem(R.id.action_settings);
+        if (settingsItem != null) {
+            // Set the visibility of the settings item based on whether the user
+            // is viewing their own profile.
+            settingsItem.setVisible(isViewingAuthenticatedUserProfile);
+        }
+        // --- END OF CHANGE ---
+
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
