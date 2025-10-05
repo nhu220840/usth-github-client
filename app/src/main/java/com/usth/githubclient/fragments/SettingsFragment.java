@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity; // Import lớp này
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -40,6 +41,19 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // --- THAY ĐỔI: Cập nhật tiêu đề của Toolbar ---
+        // Lấy Activity chứa Fragment này và cập nhật lại tiêu đề của Toolbar.
+        if (getActivity() instanceof AppCompatActivity) {
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+            if (activity.getSupportActionBar() != null) {
+                // Đặt tiêu đề mới là "Settings" (lấy từ strings.xml).
+                activity.getSupportActionBar().setTitle(getString(R.string.title_settings));
+                // Xóa phụ đề (ví dụ: /@username) có thể còn lại từ màn hình Profile.
+                activity.getSupportActionBar().setSubtitle(null);
+            }
+        }
+        // --- KẾT THÚC THAY ĐỔI ---
+
         // --- Xử lý nút Đăng xuất ---
         Button btnLogout = view.findViewById(R.id.btn_logout);
         btnLogout.setOnClickListener(v -> logout()); // Gán sự kiện click.
@@ -50,7 +64,6 @@ public class SettingsFragment extends Fragment {
         int currentMode = ThemeManager.getSavedThemeMode(requireContext());
 
         // Cập nhật trạng thái "checked" của Switch cho khớp với chế độ hiện tại.
-        // Nếu chế độ hiện tại là Dark Mode (MODE_NIGHT_YES), switch sẽ ở trạng thái "on".
         darkModeSwitch.setChecked(currentMode == AppCompatDelegate.MODE_NIGHT_YES);
 
         // Lắng nghe sự kiện khi người dùng gạt switch.

@@ -47,5 +47,6 @@
 
     <string name="settings_dark_mode">Dark Mode</string>
     <string name="settings_sign_out">Sign Out</string>
+    <string name="title_settings">Settings</string>
 
 </resources>
