@@ -102,7 +102,7 @@ public class AuthViewModel extends AndroidViewModel {
                     } else {
                         // Nếu không khớp, báo lỗi.
                         clearStoredToken(apiClient);
-                        ui.postValue(AuthUiState.error("Username không khớp với tài khoản PAT"));
+                        ui.postValue(AuthUiState.error("Username does not match PAT account"));
                     }
                     return;
                 }
