@@ -7,10 +7,6 @@ import java.util.StringJoiner;
 
 /**
  * Immutable domain representation of a GitHub user profile.
- * <p>
- * This class acts as the contract shared across the application layers when we work with
- * the details of a GitHub account. All optional attributes are exposed through {@link Optional}
- * to explicitly communicate their optional nature to collaborators working on other layers.
  */
 public final class GitHubUserProfileDataEntry {
 
@@ -50,23 +46,22 @@ public final class GitHubUserProfileDataEntry {
 
     /**
      * Creates a new builder with the mandatory identifier and username populated.
-     *
-     * @param id       Stable numeric identifier of the GitHub account as returned by the API.
-     * @param username Login of the account. Cannot be {@code null}.
-     * @return a builder instance ready to be configured.
+     * @param id The stable numeric identifier of the GitHub account.
+     * @param username The login of the account.
+     * @return A builder instance.
      */
     public static Builder builder(long id, String username) {
         return new Builder(id, username);
     }
 
     /**
-     * Creates a builder pre-populated with the data from the current instance allowing colleagues
-     * to derive new immutable instances with small mutations.
+     * Creates a builder pre-populated with the data from the current instance.
      */
     public Builder toBuilder() {
         return new Builder(this);
     }
 
+    // Getters for all fields, using Optional for nullable fields.
     public long getId() {
         return id;
     }
@@ -195,7 +190,7 @@ public final class GitHubUserProfileDataEntry {
                 .toString();
     }
 
-    /** Builder used to configure and create immutable {@link GitHubUserProfileDataEntry} values. */
+    /** Builder used to configure and create immutable GitHubUserProfileDataEntry values. */
     public static final class Builder {
 
         private final long id;

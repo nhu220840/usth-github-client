@@ -11,9 +11,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * ViewModel for the SearchReposFragment.
+ */
 public class SearchReposViewModel extends ViewModel {
 
-    // Dùng LiveData để chứa dữ liệu, nó sẽ thông báo cho Fragment khi có dữ liệu mới
+    // LiveData to hold the list of repositories and notify the Fragment of changes.
     private final MutableLiveData<List<RepoDto>> myRepos = new MutableLiveData<>();
     private final MutableLiveData<String> error = new MutableLiveData<>();
     private boolean hasLoaded = false;
@@ -26,10 +29,12 @@ public class SearchReposViewModel extends ViewModel {
         return error;
     }
 
-    // Phương thức để tải dữ liệu, chỉ tải 1 lần duy nhất
+    /**
+     * Loads the authenticated user's repositories, only once.
+     */
     public void loadMyRepos() {
         if (hasLoaded) {
-            return; // Nếu đã tải rồi thì không làm gì cả
+            return; // Don't load again if already loaded.
         }
 
         GithubApiService apiService = new ApiClient().createService(GithubApiService.class);

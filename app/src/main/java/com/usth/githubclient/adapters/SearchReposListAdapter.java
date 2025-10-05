@@ -23,6 +23,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * RecyclerView adapter for displaying a list of repositories.
+ */
 public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposListAdapter.VH> {
 
     private final List<RepoDto> items = new ArrayList<>();
@@ -32,6 +35,10 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         this.apiService = apiService;
     }
 
+    /**
+     * Submits a new list of repositories to the adapter.
+     * @param newItems The new list of repositories.
+     */
     public void submit(List<RepoDto> newItems) {
         items.clear();
         if (newItems != null) {
@@ -53,6 +60,7 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         final RepoDto repo = items.get(position);
         final Context context = h.itemView.getContext();
 
+        // Bind repository data to the views.
         h.repoName.setText(repo.getName());
         h.repoFullName.setText(repo.getFullName());
 
@@ -78,6 +86,7 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
                 repo.getOpenIssuesCount() + " issues";
         h.repoStats.setText(stats);
 
+        // Open repository URL in a browser on item click.
         h.itemView.setOnClickListener(v -> {
             if (repo.getHtmlUrl() != null && !repo.getHtmlUrl().isEmpty()) {
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(repo.getHtmlUrl()));
@@ -90,8 +99,10 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
             final String owner = parts[0];
             final String name = parts[1];
 
+            // Check if the repository is starred and update the star button.
             checkIfRepoIsStarred(owner, name, h.btnStarRepo);
 
+            // Handle star button click to star or unstar the repository.
             h.btnStarRepo.setOnClickListener(v -> {
                 boolean isStarred = (boolean) v.getTag();
                 if (isStarred) {
@@ -103,6 +114,12 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         }
     }
 
+    /**
+     * Checks if a repository is starred by the authenticated user.
+     * @param owner The repository owner.
+     * @param repo The repository name.
+     * @param button The star button to update.
+     */
     private void checkIfRepoIsStarred(String owner, String repo, ImageButton button) {
         apiService.isRepoStarred(owner, repo).enqueue(new Callback<Void>() {
             @Override
@@ -118,6 +135,9 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         });
     }
 
+    /**
+     * Stars a repository.
+     */
     private void starRepo(String owner, String repo, ImageButton button) {
         apiService.starRepo(owner, repo).enqueue(new Callback<Void>() {
             @Override
@@ -134,6 +154,9 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         });
     }
 
+    /**
+     * Unstars a repository.
+     */
     private void unstarRepo(String owner, String repo, ImageButton button) {
         apiService.unstarRepo(owner, repo).enqueue(new Callback<Void>() {
             @Override
@@ -150,6 +173,11 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         });
     }
 
+    /**
+     * Updates the UI of the star button.
+     * @param isStarred True if the repository is starred, false otherwise.
+     * @param button The button to update.
+     */
     private void updateStarButtonUI(boolean isStarred, ImageButton button) {
         Context context = button.getContext();
         if (isStarred) {
@@ -165,6 +193,9 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         return items.size();
     }
 
+    /**
+     * ViewHolder for repository items.
+     */
     static class VH extends RecyclerView.ViewHolder {
         TextView repoName, repoFullName, repoDescription, repoMeta, repoStats;
         ImageButton btnStarRepo;

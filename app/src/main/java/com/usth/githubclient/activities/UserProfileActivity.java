@@ -18,12 +18,21 @@ import com.usth.githubclient.domain.model.UserSessionData;
 import com.usth.githubclient.fragments.SettingsFragment;
 import com.usth.githubclient.fragments.UserProfileFragment;
 
+/**
+ * Activity to display a user's profile.
+ */
 public class UserProfileActivity extends AppCompatActivity {
 
     public static final String EXTRA_USERNAME = "com.usth.githubclient.extra.EXTRA_USERNAME";
 
     private ActivityUserProfileBinding binding;
 
+    /**
+     * Creates an Intent to start this activity.
+     * @param context The context.
+     * @param username The username of the profile to display. If null, displays the authenticated user's profile.
+     * @return The created Intent.
+     */
     @NonNull
     public static Intent createIntent(@NonNull Context context, @Nullable String username) {
         Intent intent = new Intent(context, UserProfileActivity.class);
@@ -46,6 +55,9 @@ public class UserProfileActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets up the toolbar.
+     */
     private void setupToolbar() {
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
@@ -55,6 +67,10 @@ public class UserProfileActivity extends AppCompatActivity {
         binding.toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
+    /**
+     * Attaches the UserProfileFragment to the activity.
+     * @param username The username to display in the fragment.
+     */
     private void attachProfileFragment(@Nullable String username) {
         UserProfileFragment fragment = UserProfileFragment.newInstance(username);
         getSupportFragmentManager()
@@ -63,6 +79,10 @@ public class UserProfileActivity extends AppCompatActivity {
                 .commit();
     }
 
+    /**
+     * Resolves the username from the intent or the cached session.
+     * @return The username to display.
+     */
     @Nullable
     private String resolveUsername() {
         Intent intent = getIntent();
@@ -87,28 +107,30 @@ public class UserProfileActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Gắn menu vào toolbar
+        // Inflate the menu for the toolbar.
         getMenuInflater().inflate(R.menu.user_profile_menu, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        // Xử lý khi item trên menu được chọn
+        // Handle menu item selections.
         if (item.getItemId() == R.id.action_settings) {
-            // Khi nhấn nút settings, chuyển sang SettingsFragment
+            // Switch to SettingsFragment when the settings button is pressed.
             showSettingsFragment();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Replaces the current fragment with SettingsFragment.
+     */
     private void showSettingsFragment() {
-        // Thay thế fragment hiện tại bằng SettingsFragment
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.user_profile_fragment_container, new SettingsFragment())
-                .addToBackStack(null) // Cho phép quay lại fragment trước đó
+                .addToBackStack(null) // Allows returning to the previous fragment.
                 .commit();
     }
 

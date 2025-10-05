@@ -30,14 +30,25 @@ public final class UserSessionData {
         this.lastSyncedAt = builder.lastSyncedAt;
     }
 
+    /**
+     * Creates a new builder for a UserSessionData instance.
+     * @param username The username.
+     * @param accessToken The access token.
+     * @return A new builder instance.
+     */
     public static Builder builder(String username, String accessToken) {
         return new Builder(username, accessToken);
     }
 
+    /**
+     * Creates a builder from the current instance.
+     * @return A new builder pre-populated with data from this instance.
+     */
     public Builder toBuilder() {
         return new Builder(this);
     }
 
+    // Getters for all fields, using Optional for nullable fields.
     public String getUsername() {
         return username;
     }
@@ -67,14 +78,16 @@ public final class UserSessionData {
     }
 
     /**
-     * Returns {@code true} if an access token expiration is present and the provided moment is
-     * on or after that expiration instant.
+     * Returns {@code true} if the access token is expired.
      */
     public boolean isTokenExpired(Instant moment) {
         Objects.requireNonNull(moment, "moment == null");
         return accessTokenExpiration != null && !moment.isBefore(accessTokenExpiration);
     }
 
+    /**
+     * Returns {@code true} if the access token is valid.
+     */
     public boolean hasValidToken(Instant moment) {
         return !accessToken.isEmpty() && !isTokenExpired(moment);
     }
@@ -123,6 +136,9 @@ public final class UserSessionData {
                 .toString();
     }
 
+    /**
+     * Builder for creating UserSessionData instances.
+     */
     public static final class Builder {
 
         private final String username;

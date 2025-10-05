@@ -24,8 +24,10 @@ import java.util.concurrent.Executors;
 
 import retrofit2.Response;
 
+// ViewModel for managing and providing user profile data to the UI.
 public class UserViewModel extends ViewModel {
 
+    // LiveData to hold the UI state.
     private final MutableLiveData<UserUiState> uiState = new MutableLiveData<>(UserUiState.idle());
     private final ExecutorService executorService;
     private final AuthRepository authRepository;
@@ -40,10 +42,12 @@ public class UserViewModel extends ViewModel {
     private static final String AUTH_REQUIRED_ERROR_MESSAGE =
             "Sign in with a personal access token to view your profile.";
 
+    // Default constructor using ServiceLocator for dependencies.
     public UserViewModel() {
         this(ServiceLocator.getInstance().authRepository(), buildDefaultUserRepository(), ServiceLocator.getInstance().userMapper());
     }
 
+    // Constructor for dependency injection.
     public UserViewModel(@NonNull AuthRepository authRepository,
                          @NonNull UserRepository userRepository,
                          @NonNull UserMapper userMapper) {
@@ -53,19 +57,23 @@ public class UserViewModel extends ViewModel {
         this.executorService = Executors.newSingleThreadExecutor();
     }
 
+    // Helper to create a default UserRepository instance.
     private static UserRepository buildDefaultUserRepository() {
         ApiClient apiClient = new ApiClient();
         return new UserRepositoryImpl(apiClient);
     }
 
+    // Exposes the UI state as LiveData to the UI.
     public LiveData<UserUiState> getUiState() {
         return uiState;
     }
 
+    // Loads a user profile. If username is null or empty, it loads the authenticated user's profile.
     public void loadUserProfile(@Nullable String username) {
         String normalized = username == null ? "" : username.trim();
         boolean viewingAuthenticatedUser = normalized.isEmpty();
 
+        // Avoid reloading if the same profile is already loaded.
         if (viewingAuthenticatedUser) {
             if (displayingAuthenticatedProfile && hasExistingProfile()) {
                 return;
@@ -81,10 +89,9 @@ public class UserViewModel extends ViewModel {
         currentUsername = viewingAuthenticatedUser ? null : normalized;
         uiState.setValue(UserUiState.loading());
 
+        // Fetch data on a background thread.
         final String requestedUsername = normalized;
         executorService.execute(() -> {
-            // FIX: Replaced the undefined 'fetchAuthenticatedUser' variable
-            // with the correctly scoped 'viewingAuthenticatedUser' boolean.
             if (viewingAuthenticatedUser) {
                 fetchAuthenticatedProfile();
             } else {
@@ -93,11 +100,13 @@ public class UserViewModel extends ViewModel {
         });
     }
 
+    // Checks if there's already a profile in the current UI state.
     private boolean hasExistingProfile() {
         UserUiState state = uiState.getValue();
         return state != null && state.getProfile() != null;
     }
 
+    // Tries to load the user profile from the cached session data.
     private boolean tryLoadProfileFromSession() {
         UserSessionData session = authRepository.getCachedSession();
         if (session == null) {
@@ -114,6 +123,7 @@ public class UserViewModel extends ViewModel {
         return true;
     }
 
+    // Fetches the profile of the currently authenticated user.
     private void fetchAuthenticatedProfile() {
         try {
             Response<UserDto> response = userRepository.authenticate().execute();
@@ -142,6 +152,7 @@ public class UserViewModel extends ViewModel {
         }
     }
 
+    // Fetches a user's profile by their username.
     private void fetchUserProfileByUsername(@NonNull String username) {
         try {
             Response<UserDto> response = userRepository.getUser(username).execute();
@@ -166,6 +177,7 @@ public class UserViewModel extends ViewModel {
         }
     }
 
+    // Retries the last failed profile load operation.
     public void retry() {
         if (displayingAuthenticatedProfile || currentUsername == null) {
             loadUserProfile(null);
@@ -174,13 +186,14 @@ public class UserViewModel extends ViewModel {
         }
     }
 
+    // Cleans up resources when the ViewModel is destroyed.
     @Override
     protected void onCleared() {
         super.onCleared();
         executorService.shutdownNow();
     }
 
-    // The UserUiState class remains unchanged.
+    // Represents the different states of the user profile UI.
     public static final class UserUiState {
         private final boolean loading;
         private final GitHubUserProfileDataEntry profile;

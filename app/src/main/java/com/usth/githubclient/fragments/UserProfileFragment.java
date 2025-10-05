@@ -28,6 +28,9 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * Fragment to display a user's profile.
+ */
 public class UserProfileFragment extends Fragment {
 
     public static final String TAG = "UserProfileFragment";
@@ -36,6 +39,11 @@ public class UserProfileFragment extends Fragment {
     private FragmentUserProfileBinding binding;
     private UserViewModel viewModel;
 
+    /**
+     * Creates a new instance of UserProfileFragment.
+     * @param username The username of the profile to display.
+     * @return A new instance of UserProfileFragment.
+     */
     public static UserProfileFragment newInstance(@Nullable String username) {
         UserProfileFragment fragment = new UserProfileFragment();
         Bundle args = new Bundle();
@@ -65,6 +73,10 @@ public class UserProfileFragment extends Fragment {
         viewModel.loadUserProfile(username);
     }
 
+    /**
+     * Renders the UI based on the ViewModel's state.
+     * @param state The current UI state.
+     */
     private void renderState(@Nullable UserViewModel.UserUiState state) {
         if (binding == null || state == null) {
             return;
@@ -89,6 +101,10 @@ public class UserProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Binds the user profile data to the views.
+     * @param profile The user profile data.
+     */
     private void bindProfile(@NonNull GitHubUserProfileDataEntry profile) {
         String displayName = profile.getDisplayName().orElse(profile.getUsername());
         binding.displayName.setText(displayName);

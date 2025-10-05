@@ -28,6 +28,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Fragment for searching and displaying users.
+ */
 public class SearchUsersFragment extends BaseFragment {
     private SearchUsersListAdapter adapter;
     private final ApiClient apiClient = new ApiClient();
@@ -89,7 +92,7 @@ public class SearchUsersFragment extends BaseFragment {
         lastSearchQuery = q;
         showLoading(true);
 
-        // GỌI SEARCH USERS → trả về danh sách users liên quan
+        // Call the search users API.
         apiService
                 .searchUsers(q, 1, 30)
                 .enqueue(new Callback<SearchUsersResponseDto>() {
@@ -299,8 +302,9 @@ public class SearchUsersFragment extends BaseFragment {
                 return getString(R.string.section_search_results);
             }
         }
-        return null; // Trả về null để ẩn tiêu đề
+        return null; // Return null to hide the title.
     }
+
     @Override
     protected void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));

@@ -1,11 +1,10 @@
-// build.gradle.kts (Cấp Dự án)
-
+// Project-level build file where you can add configuration options common to all sub-projects/modules.
+// Defines the Android Gradle Plugin version.
 plugins {
-    // Khai báo plugin Android Application và phiên bản của nó
     id("com.android.application") version "8.7.0" apply false
 }
 
-// Task dọn dẹp project (tùy chọn)
+// Optional: A custom task to clean the project build directory.
 tasks.register<Delete>("clean") {
     delete(rootProject.buildDir)
 }

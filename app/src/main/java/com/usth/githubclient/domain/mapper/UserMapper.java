@@ -11,16 +11,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Maps {@link UserDto} values coming from the data layer into domain models that the rest of the
- * application can operate on.
+ * Maps {@link UserDto} values from the data layer into domain models.
  */
 public final class UserMapper {
 
     /**
-     * Convert an API user payload to the immutable domain representation.
-     *
-     * @param dto raw payload fetched from the remote service.
-     * @return domain model describing the same user.
+     * Converts an API user payload to the immutable domain representation.
+     * @param dto Raw payload fetched from the remote service.
+     * @return Domain model describing the same user.
      */
     public GitHubUserProfileDataEntry map(UserDto dto) {
         Objects.requireNonNull(dto, "dto == null");
@@ -121,6 +119,11 @@ public final class UserMapper {
         }
     }
 
+    /**
+     * Maps a list of UserDtos to a list of GitHubUserProfileDataEntrys.
+     * @param dtoList The list of UserDtos to map.
+     * @return The mapped list of GitHubUserProfileDataEntrys.
+     */
     public List<GitHubUserProfileDataEntry> mapList(List<UserDto> dtoList) {
         List<GitHubUserProfileDataEntry> result = new ArrayList<>();
         if (dtoList != null) {

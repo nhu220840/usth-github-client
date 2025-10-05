@@ -21,6 +21,10 @@ import com.usth.githubclient.adapters.ViewPagerAdapter;
 import com.usth.githubclient.fragments.SearchReposFragment;
 import com.usth.githubclient.fragments.SearchUsersFragment;
 
+/**
+ * The main screen of the app, hosting the ViewPager for different fragments
+ * and the BottomNavigationView for navigation.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
@@ -37,36 +41,40 @@ public class MainActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.view_pager);
         navView = findViewById(R.id.bottom_navigation);
 
-        // Khởi tạo Adapter và gán cho ViewPager
+        // Initialize the ViewPagerAdapter and set it to the ViewPager.
         viewPagerAdapter = new ViewPagerAdapter(this);
         viewPager.setAdapter(viewPagerAdapter);
 
-        // Tắt tính năng vuốt ngang để chỉ điều khiển bằng BottomNavigationView
+        // Disable horizontal swiping to control navigation only via BottomNavigationView.
         viewPager.setUserInputEnabled(false);
 
         setupNavigationSync();
         setupSearchView();
     }
 
+    /**
+     * Sets up synchronization between the BottomNavigationView and the ViewPager.
+     */
     private void setupNavigationSync() {
-        // Đồng bộ khi người dùng bấm vào một tab trên BottomNavigationView
+        // Handle tab clicks in BottomNavigationView.
         navView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
-                viewPager.setCurrentItem(0, false); // Chuyển đến trang 0 (Home)
+                viewPager.setCurrentItem(0, false); // Switch to Home fragment.
                 return true;
             } else if (itemId == R.id.nav_repositories) {
-                viewPager.setCurrentItem(1, false); // Chuyển đến trang 1 (Repositories)
+                viewPager.setCurrentItem(1, false); // Switch to Repositories fragment.
                 return true;
             } else if (itemId == R.id.nav_profile) {
+                // Launch UserProfileActivity for the profile tab.
                 Intent intent = UserProfileActivity.createIntent(this, null);
                 startActivity(intent);
-                return false; // Không chọn tab này
+                return false; // Do not select this tab.
             }
             return false;
         });
 
-        // Đồng bộ khi ViewPager thay đổi trang (dùng cho trường hợp vuốt)
+        // Update BottomNavigationView when ViewPager page changes.
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -81,6 +89,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Sets up the SearchView and its listeners.
+     */
     private void setupSearchView() {
         SearchView searchView = findViewById(R.id.search_view);
         updateSearchHint();
@@ -88,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                // Lấy fragment hiện tại từ FragmentManager theo tag mặc định của ViewPager2
+                // Submit the search query to the current fragment.
                 Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
                 if (currentFragment instanceof SearchUsersFragment) {
                     ((SearchUsersFragment) currentFragment).submitQuery(query.trim());
@@ -100,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                // Handle text changes in the search view (e.g., clear search).
                 Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("f" + viewPager.getCurrentItem());
                 if (newText == null || newText.trim().isEmpty()) {
                     if (currentFragment instanceof SearchUsersFragment) {
@@ -112,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // --- Mã styling cho SearchView giữ nguyên ---
+        // --- Styling for the SearchView ---
         View searchPlate = searchView.findViewById(androidx.appcompat.R.id.search_plate);
         if (searchPlate != null) {
             searchPlate.setBackground(null);
@@ -139,11 +151,14 @@ public class MainActivity extends AppCompatActivity {
         searchView.clearFocus();
     }
 
+    /**
+     * Updates the hint text of the SearchView based on the current fragment.
+     */
     private void updateSearchHint() {
         SearchView searchView = findViewById(R.id.search_view);
-        if (viewPager.getCurrentItem() == 0) { // Vị trí 0 là Home
+        if (viewPager.getCurrentItem() == 0) { // Home tab (position 0)
             searchView.setQueryHint(getString(R.string.search_hint));
-        } else { // Vị trí 1 là Repositories
+        } else { // Repositories tab (position 1)
             searchView.setQueryHint(getString(R.string.search_repo_hint));
         }
     }

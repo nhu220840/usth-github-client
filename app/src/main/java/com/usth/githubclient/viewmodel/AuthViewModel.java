@@ -18,8 +18,14 @@ import java.util.List;
 
 import retrofit2.Response;
 
+/**
+ * ViewModel for handling authentication logic and state.
+ */
 public class AuthViewModel extends AndroidViewModel {
 
+    /**
+     * Represents the UI state for authentication.
+     */
     public static final class AuthUiState {
         public enum Status { IDLE, LOADING, SIGNED_IN, ERROR }
         public final Status status;
@@ -39,20 +45,24 @@ public class AuthViewModel extends AndroidViewModel {
         super(app);
     }
 
-    // ===== PAT Sign-in (có thể kèm username/email để xác nhận) =====
+    // ===== PAT Sign-in =====
     public void signInWithPat(String pat) { signInWithPat(pat, null); }
 
+    /**
+     * Signs in the user with a Personal Access Token (PAT).
+     * @param pat The PAT.
+     * @param identifier The username or email to verify against the PAT.
+     */
     public void signInWithPat(String pat, @Nullable String identifier) {
         ui.postValue(AuthUiState.loading());
 
         new Thread(() -> {
             ApiClient apiClient = new ApiClient();
             try {
-                // Lưu PAT mã hoá -> AuthInterceptor sẽ tự gắn header cho mọi request
+                // The AuthInterceptor will automatically add the header to all requests.
                 GithubApiService api = apiClient.createService(pat, GithubApiService.class);
 
-
-                // 1) /user
+                // 1) Verify the PAT by fetching user info.
                 Response<UserDto> meRes = api.authenticate().execute();
                 if (!meRes.isSuccessful() || meRes.body() == null) {
                     clearStoredToken(apiClient);
@@ -64,8 +74,7 @@ public class AuthViewModel extends AndroidViewModel {
                 String login = me != null ? me.getLogin() : null;
                 String publicEmail = me != null ? me.getEmail() : null;
 
-
-                // 2) Không yêu cầu định danh -> thành công
+                // 2) If no identifier is required, sign in is successful.
                 if (identifier == null || identifier.trim().isEmpty()) {
                     persistTokenAndSignIn(apiClient, pat, login);
                     return;
@@ -74,7 +83,7 @@ public class AuthViewModel extends AndroidViewModel {
                 String id = identifier.trim();
                 boolean isEmail = id.contains("@");
 
-                // 3) Xác minh username
+                // 3) Verify the username.
                 if (!isEmail) {
                     if (login != null && login.equalsIgnoreCase(id)) {
                         persistTokenAndSignIn(apiClient, pat, login);
@@ -85,7 +94,7 @@ public class AuthViewModel extends AndroidViewModel {
                     return;
                 }
 
-                // 4) Xác minh email (public trước)
+                // 4) Verify the public email.
                 if (publicEmail != null && !publicEmail.isEmpty()) {
                     if (publicEmail.equalsIgnoreCase(id)) {
                         persistTokenAndSignIn(apiClient, pat, login);
@@ -96,7 +105,7 @@ public class AuthViewModel extends AndroidViewModel {
                     return;
                 }
 
-                // 5) Email private -> /user/emails (cần scope user:email)
+                // 5) Verify private emails (requires user:email scope).
                 Response<List<UserEmailDto>> emailsRes = api.getUserEmails().execute();
                 if (emailsRes.isSuccessful() && emailsRes.body() != null) {
                     boolean matched = false;
@@ -126,6 +135,9 @@ public class AuthViewModel extends AndroidViewModel {
         }).start();
     }
 
+    /**
+     * Signs out the user.
+     */
     public void signOut() {
         ApiClient apiClient = new ApiClient();
         try { TokenStore.clear(getApplication()); } catch (Exception ignored) {}

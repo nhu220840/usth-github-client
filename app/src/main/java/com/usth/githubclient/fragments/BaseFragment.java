@@ -13,6 +13,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import com.usth.githubclient.R;
 
+/**
+ * An abstract base fragment that provides common UI components and functionality for list-based fragments.
+ */
 public abstract class BaseFragment extends Fragment {
 
     protected RecyclerView recyclerView;
@@ -20,8 +23,7 @@ public abstract class BaseFragment extends Fragment {
     protected TextView emptyView;
     protected TextView sectionTitle;
 
-    // PHƯƠNG THỨC TRỪU TƯỢNG: Bắt buộc các fragment con phải định nghĩa
-    // phương thức này để trả về nội dung cho tiêu đề.
+    // Abstract method that child fragments must implement to provide a section title.
     @Nullable
     protected abstract String getSectionTitle();
 
@@ -37,15 +39,18 @@ public abstract class BaseFragment extends Fragment {
         return v;
     }
 
-    // Phương thức này vẫn giữ nguyên
+    // Abstract method to set up the RecyclerView.
     protected abstract void setupRecyclerView();
 
-    // ----- CÁC HÀM QUẢN LÝ UI ĐÃ ĐƯỢC NÂNG CẤP -----
+    // ----- UI management methods -----
 
+    /**
+     * Updates the section title.
+     */
     protected void updateSectionTitle() {
         if (sectionTitle == null) return;
 
-        String title = getSectionTitle(); // Lấy nội dung từ fragment con
+        String title = getSectionTitle(); // Get the title from the child fragment.
 
         if (!TextUtils.isEmpty(title)) {
             sectionTitle.setText(title);
@@ -55,25 +60,36 @@ public abstract class BaseFragment extends Fragment {
         }
     }
 
+    /**
+     * Shows or hides the loading indicator.
+     * @param loading True to show the loading indicator, false to hide it.
+     */
     protected void showLoading(boolean loading) {
         progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
         recyclerView.setVisibility(loading ? View.INVISIBLE : View.VISIBLE);
         emptyView.setVisibility(View.GONE);
-        updateSectionTitle(); // Tự động cập nhật tiêu đề
+        updateSectionTitle(); // Automatically update the title.
     }
 
+    /**
+     * Shows the empty view with a message.
+     * @param msg The message to display.
+     */
     protected void showEmpty(String msg) {
         progressBar.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
         emptyView.setVisibility(View.VISIBLE);
         emptyView.setText(msg);
-        updateSectionTitle(); // Tự động cập nhật tiêu đề
+        updateSectionTitle(); // Automatically update the title.
     }
 
+    /**
+     * Shows the list view.
+     */
     protected void showList() {
         progressBar.setVisibility(View.GONE);
         emptyView.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
-        updateSectionTitle(); // Tự động cập nhật tiêu đề
+        updateSectionTitle(); // Automatically update the title.
     }
 }

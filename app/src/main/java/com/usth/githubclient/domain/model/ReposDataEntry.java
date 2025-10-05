@@ -48,14 +48,26 @@ public final class ReposDataEntry {
         this.owner = builder.owner;
     }
 
+    /**
+     * Creates a new builder for a ReposDataEntry.
+     * @param id The repository ID.
+     * @param name The repository name.
+     * @param htmlUrl The URL to the repository.
+     * @return A new builder instance.
+     */
     public static Builder builder(long id, String name, String htmlUrl) {
         return new Builder(id, name, htmlUrl);
     }
 
+    /**
+     * Creates a builder from the current instance.
+     * @return A new builder pre-populated with data from this instance.
+     */
     public Builder toBuilder() {
         return new Builder(this);
     }
 
+    // Getters for all fields, using Optional for nullable fields.
     public long getId() {
         return id;
     }
@@ -198,6 +210,9 @@ public final class ReposDataEntry {
                 .toString();
     }
 
+    /**
+     * Builder for creating ReposDataEntry instances.
+     */
     public static final class Builder {
 
         private final long id;
@@ -334,4 +349,3 @@ public final class ReposDataEntry {
         }
     }
 }
-

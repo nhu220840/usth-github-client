@@ -14,8 +14,11 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.usth.githubclient.R;
 import com.usth.githubclient.activities.AuthenticationActivity;
 import com.usth.githubclient.di.ServiceLocator;
-import com.usth.githubclient.util.ThemeManager; // Import lớp mới
+import com.usth.githubclient.util.ThemeManager; // Import the new class
 
+/**
+ * Fragment for managing application settings.
+ */
 public class SettingsFragment extends Fragment {
 
     @Nullable
@@ -28,18 +31,18 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Xử lý nút Đăng xuất
+        // Handle the logout button.
         Button btnLogout = view.findViewById(R.id.btn_logout);
         btnLogout.setOnClickListener(v -> logout());
 
-        // Xử lý Switch Dark Mode
+        // Handle the Dark Mode switch.
         MaterialSwitch darkModeSwitch = view.findViewById(R.id.switch_dark_mode);
         int currentMode = ThemeManager.getSavedThemeMode(requireContext());
 
-        // Cập nhật trạng thái của Switch dựa trên theme hiện tại
+        // Update the switch state based on the current theme.
         darkModeSwitch.setChecked(currentMode == AppCompatDelegate.MODE_NIGHT_YES);
 
-        // Lắng nghe sự kiện thay đổi
+        // Listen for changes to the switch.
         darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             int newMode = isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO;
             ThemeManager.saveThemeMode(requireContext(), newMode);
@@ -47,8 +50,10 @@ public class SettingsFragment extends Fragment {
         });
     }
 
+    /**
+     * Logs out the user and navigates to the AuthenticationActivity.
+     */
     private void logout() {
-        // ... (giữ nguyên mã logout)
         if (getActivity() == null) return;
         ServiceLocator.getInstance().authRepository().signOut();
         Intent intent = new Intent(getActivity(), AuthenticationActivity.class);

@@ -1,4 +1,4 @@
-// settings.gradle.kts
+// Configures the repositories for plugin management.
 pluginManagement {
     repositories {
         google()
@@ -6,6 +6,8 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
+// Configures dependency resolution management for the project.
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -13,5 +15,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+
+// Sets the root project name and includes the app module.
 rootProject.name = "USTH GitHub Client"
 include(":app")

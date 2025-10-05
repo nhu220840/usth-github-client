@@ -17,8 +17,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     private final ApiClient apiClient;
 
-    // Dependency Injection: The ApiClient is provided via the constructor.
-    // Điều này giúp việc kiểm thử (testing) dễ dàng hơn.
+    // Dependency Injection: The ApiClient is provided via the constructor, which makes testing easier.
     public UserRepositoryImpl(@NonNull ApiClient apiClient) {
         this.apiClient = apiClient;
     }

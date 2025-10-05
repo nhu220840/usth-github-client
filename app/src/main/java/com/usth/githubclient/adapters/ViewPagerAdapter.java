@@ -7,6 +7,9 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import com.usth.githubclient.fragments.SearchReposFragment;
 import com.usth.githubclient.fragments.SearchUsersFragment;
 
+/**
+ * Adapter for the ViewPager2 in MainActivity, providing fragments for each tab.
+ */
 public class ViewPagerAdapter extends FragmentStateAdapter {
 
     public ViewPagerAdapter(@NonNull FragmentActivity fragmentActivity) {
@@ -16,9 +19,9 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        // Trả về Fragment tương ứng với vị trí
-        // Vị trí 0: Home (Users)
-        // Vị trí 1: Repositories
+        // Return the corresponding fragment for the given position.
+        // Position 0: Home (Users)
+        // Position 1: Repositories
         if (position == 1) {
             return SearchReposFragment.newInstance();
         }
@@ -27,7 +30,7 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        // Chúng ta có 2 tab
+        // We have 2 tabs.
         return 2;
     }
 }

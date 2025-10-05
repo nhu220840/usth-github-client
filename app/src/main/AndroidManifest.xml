@@ -16,7 +16,6 @@
         android:theme="@style/Theme.USTHGitHubClient"
         tools:targetApi="33" >
 
-        <!-- Authentication display and also LAUNCHER (observe ViewModel, render UI) -->
         <activity
             android:name=".activities.AuthenticationActivity"
             android:exported="true">

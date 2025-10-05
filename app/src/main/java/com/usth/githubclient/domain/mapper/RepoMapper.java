@@ -21,6 +21,11 @@ public final class RepoMapper {
         this.userMapper = Objects.requireNonNull(userMapper, "userMapper == null");
     }
 
+    /**
+     * Maps a RepoDto to a ReposDataEntry.
+     * @param dto The RepoDto to map.
+     * @return The mapped ReposDataEntry.
+     */
     public ReposDataEntry map(RepoDto dto) {
         Objects.requireNonNull(dto, "dto == null");
 
@@ -80,6 +85,11 @@ public final class RepoMapper {
         return builder.build();
     }
 
+    /**
+     * Maps a list of RepoDtos to a list of ReposDataEntrys.
+     * @param dtos The list of RepoDtos to map.
+     * @return The mapped list of ReposDataEntrys.
+     */
     public List<ReposDataEntry> mapList(List<RepoDto> dtos) {
         if (dtos == null || dtos.isEmpty()) {
             return Collections.emptyList();

@@ -15,12 +15,18 @@ import com.usth.githubclient.R;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * RecyclerView adapter for displaying a list of users.
+ */
 public class SearchUsersListAdapter extends RecyclerView.Adapter<SearchUsersListAdapter.VH> {
 
+    /**
+     * Represents a row in the user list.
+     */
     public static class UserRow {
         public final String login;
         public final String avatarUrl;
-        public String displayName; // tên thật (có thể null)
+        public String displayName; // Real name (can be null)
         public String bio;
         public Integer publicRepos;
         public Integer followers;
@@ -34,12 +40,24 @@ public class SearchUsersListAdapter extends RecyclerView.Adapter<SearchUsersList
 
     private final List<UserRow> items = new ArrayList<>();
 
+    /**
+     * Submits a new list of users to the adapter.
+     * @param newItems The new list of users.
+     */
     public void submit(List<UserRow> newItems) {
         items.clear();
         if (newItems != null) items.addAll(newItems);
         notifyDataSetChanged();
     }
 
+    /**
+     * Updates the details of a user in the list.
+     * @param login The login of the user to update.
+     * @param displayName The new display name.
+     * @param bio The new bio.
+     * @param publicRepos The new public repository count.
+     * @param followers The new follower count.
+     */
     public void updateDetails(String login, String displayName, String bio, Integer publicRepos, Integer followers) {
         for (int i = 0; i < items.size(); i++) {
             UserRow r = items.get(i);
@@ -84,6 +102,7 @@ public class SearchUsersListAdapter extends RecyclerView.Adapter<SearchUsersList
     public void onBindViewHolder(@NonNull VH h, int position) {
         UserRow row = items.get(position);
 
+        // Bind user data to the views.
         String displayName = (row.displayName != null && !row.displayName.trim().isEmpty())
                 ? row.displayName
                 : row.login;
@@ -107,6 +126,7 @@ public class SearchUsersListAdapter extends RecyclerView.Adapter<SearchUsersList
             h.stats.setVisibility(View.GONE);
         }
 
+        // Load the user's avatar using Glide.
         Glide.with(h.avatar.getContext())
                 .load(row.avatarUrl)
                 .placeholder(R.drawable.ic_person_placeholder)
@@ -116,6 +136,9 @@ public class SearchUsersListAdapter extends RecyclerView.Adapter<SearchUsersList
     @Override
     public int getItemCount() { return items.size(); }
 
+    /**
+     * ViewHolder for user items.
+     */
     static class VH extends RecyclerView.ViewHolder {
         ImageView avatar;
         TextView displayName;

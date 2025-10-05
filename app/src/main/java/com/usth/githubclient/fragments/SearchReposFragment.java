@@ -19,6 +19,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Fragment for searching and displaying repositories.
+ */
 public class SearchReposFragment extends BaseFragment {
     private SearchReposListAdapter adapter;
     private GithubApiService apiService;
@@ -50,6 +53,7 @@ public class SearchReposFragment extends BaseFragment {
 
         setupRecyclerView();
 
+        // Observe the list of repositories from the ViewModel.
         viewModel.getMyRepos().observe(getViewLifecycleOwner(), repos -> {
             if (listMode == ListMode.REPOS) {
                 adapter.submit(repos);
@@ -61,6 +65,7 @@ public class SearchReposFragment extends BaseFragment {
             }
         });
 
+        // Observe errors from the ViewModel.
         viewModel.getError().observe(getViewLifecycleOwner(), errorMsg -> {
             if (listMode == ListMode.REPOS) {
                 showEmpty(errorMsg);
@@ -74,6 +79,10 @@ public class SearchReposFragment extends BaseFragment {
         return v;
     }
 
+    /**
+     * Submits a search query.
+     * @param query The search query.
+     */
     public void submitQuery(String query) {
         if (query == null || query.trim().isEmpty()) {
             displayMyRepos();
@@ -109,6 +118,9 @@ public class SearchReposFragment extends BaseFragment {
         });
     }
 
+    /**
+     * Displays the authenticated user's repositories.
+     */
     public void showMyRepos() {
         displayMyRepos();
     }
@@ -141,7 +153,7 @@ public class SearchReposFragment extends BaseFragment {
     protected void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.addItemDecoration(new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL));
-        // Dòng này đã được sửa lại để truyền apiService vào constructor
+        // Pass the apiService to the adapter's constructor.
         adapter = new SearchReposListAdapter(apiService);
         recyclerView.setAdapter(adapter);
     }

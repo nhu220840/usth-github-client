@@ -28,7 +28,7 @@ public class RepoRepositoryImpl implements RepoRepository {
     @Override
     public Call<List<RepoDto>> getUserRepositories(String username, int type, int perPage, int page) {
         // The "type" parameter is preserved for compatibility even though the API expects a sort value.
-        return apiService().getUserRepositories(username, type, perPage, String.valueOf(page));
+        return apiService().getUserRepositories(username, perPage, page, String.valueOf(type));
     }
 
     @Override

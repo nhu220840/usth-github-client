@@ -10,8 +10,8 @@ import com.usth.githubclient.domain.mapper.RepoMapper;
 import com.usth.githubclient.domain.mapper.UserMapper;
 
 /**
- * Very small dependency container to make mapper & repository instances
- * available across the app without pulling in a full DI framework just yet.
+ * A simple dependency container to make mapper & repository instances
+ * available across the app without using a full DI framework.
  */
 public final class ServiceLocator {
 
@@ -26,6 +26,7 @@ public final class ServiceLocator {
 
 
     private ServiceLocator() {
+        // Initialize all dependencies.
         apiClient = new ApiClient();
         userMapper = new UserMapper();
         repoMapper = new RepoMapper(userMapper);
@@ -35,6 +36,10 @@ public final class ServiceLocator {
         authRepository = new AuthRepository(apiClient, userRepository, repoRepository, userMapper, repoMapper);
     }
 
+    /**
+     * Gets the singleton instance of the ServiceLocator.
+     * @return The ServiceLocator instance.
+     */
     public static ServiceLocator getInstance() {
         if (instance == null) {
             synchronized (ServiceLocator.class) {
