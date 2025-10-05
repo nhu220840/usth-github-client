@@ -5,7 +5,7 @@
     <string name="title_repo">Repositories</string>
     <string name="title_profile">Profile</string>
 
-    <string name="sign_in_to_github">Sign in to Github</string>
+    <string name="sign_in_to_github">Sign in to GitHub</string>
     <string name="user_name_or_email">Username or Email</string>
     <string name="password">Password</string>
     <string name="github_pat">Enter your PAT (Personal Access Token)</string>
