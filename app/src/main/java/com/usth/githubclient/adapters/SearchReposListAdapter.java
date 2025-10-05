@@ -10,20 +10,15 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.usth.githubclient.R;
-import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
 import com.usth.githubclient.data.remote.dto.RepoDto;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -31,12 +26,10 @@ import retrofit2.Response;
 public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposListAdapter.VH> {
 
     private final List<RepoDto> items = new ArrayList<>();
-    // Thêm một thể hiện của GithubApiService để gọi API
     private final GithubApiService apiService;
 
-    public SearchReposListAdapter() {
-        // Khởi tạo apiService khi adapter được tạo
-        this.apiService = new ApiClient().createService(GithubApiService.class);
+    public SearchReposListAdapter(GithubApiService apiService) {
+        this.apiService = apiService;
     }
 
     public void submit(List<RepoDto> newItems) {
@@ -57,8 +50,8 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
 
     @Override
     public void onBindViewHolder(@NonNull VH h, int position) {
-        RepoDto repo = items.get(position);
-        Context context = h.itemView.getContext();
+        final RepoDto repo = items.get(position);
+        final Context context = h.itemView.getContext();
 
         h.repoName.setText(repo.getName());
         h.repoFullName.setText(repo.getFullName());
@@ -85,9 +78,6 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
                 repo.getOpenIssuesCount() + " issues";
         h.repoStats.setText(stats);
 
-        // --- LOGIC MỚI ---
-
-        // 1. Click vào item -> mở website GitHub
         h.itemView.setOnClickListener(v -> {
             if (repo.getHtmlUrl() != null && !repo.getHtmlUrl().isEmpty()) {
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(repo.getHtmlUrl()));
@@ -95,18 +85,14 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
             }
         });
 
-        // 2. Logic cho nút Star
-        String[] parts = repo.getFullName().split("/");
+        final String[] parts = repo.getFullName().split("/");
         if (parts.length == 2) {
-            String owner = parts[0];
-            String name = parts[1];
+            final String owner = parts[0];
+            final String name = parts[1];
 
-            // Kiểm tra trạng thái star ban đầu của repo
             checkIfRepoIsStarred(owner, name, h.btnStarRepo);
 
-            // Xử lý sự kiện click nút Star
             h.btnStarRepo.setOnClickListener(v -> {
-                // Lấy trạng thái đã star hay chưa từ tag của button
                 boolean isStarred = (boolean) v.getTag();
                 if (isStarred) {
                     unstarRepo(owner, name, h.btnStarRepo);
@@ -121,14 +107,12 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         apiService.isRepoStarred(owner, repo).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                // API trả về 204 nghĩa là đã star, 404 là chưa star
                 boolean isStarred = response.code() == 204;
                 updateStarButtonUI(isStarred, button);
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                // Mặc định là chưa star nếu lỗi mạng
                 updateStarButtonUI(false, button);
             }
         });
@@ -138,7 +122,7 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         apiService.starRepo(owner, repo).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) { // 204 No Content
+                if (response.isSuccessful()) {
                     updateStarButtonUI(true, button);
                     Toast.makeText(button.getContext(), "Starred!", Toast.LENGTH_SHORT).show();
                 }
@@ -154,7 +138,7 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         apiService.unstarRepo(owner, repo).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) { // 204 No Content
+                if (response.isSuccessful()) {
                     updateStarButtonUI(false, button);
                     Toast.makeText(button.getContext(), "Unstarred!", Toast.LENGTH_SHORT).show();
                 }
@@ -173,10 +157,8 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
         } else {
             button.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_star_outline));
         }
-        // Lưu trạng thái vào tag của button để sử dụng khi click
         button.setTag(isStarred);
     }
-
 
     @Override
     public int getItemCount() {
@@ -185,7 +167,7 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
 
     static class VH extends RecyclerView.ViewHolder {
         TextView repoName, repoFullName, repoDescription, repoMeta, repoStats;
-        ImageButton btnStarRepo; // Thêm nút star vào ViewHolder
+        ImageButton btnStarRepo;
 
         VH(@NonNull View itemView) {
             super(itemView);
@@ -194,7 +176,7 @@ public class SearchReposListAdapter extends RecyclerView.Adapter<SearchReposList
             repoDescription = itemView.findViewById(R.id.repository_description);
             repoMeta = itemView.findViewById(R.id.repository_meta);
             repoStats = itemView.findViewById(R.id.repository_stats);
-            btnStarRepo = itemView.findViewById(R.id.btn_star_repo); // Ánh xạ nút star
+            btnStarRepo = itemView.findViewById(R.id.btn_star_repo);
         }
     }
 }
