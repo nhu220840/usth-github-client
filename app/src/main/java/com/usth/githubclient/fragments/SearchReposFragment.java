@@ -14,8 +14,12 @@ import com.usth.githubclient.R;
 import com.usth.githubclient.adapters.SearchReposListAdapter;
 import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
+import com.usth.githubclient.data.remote.dto.RepoDto;
 import com.usth.githubclient.data.remote.dto.SearchRepoResponseDto;
 import com.usth.githubclient.viewmodel.SearchReposViewModel; // Import ViewModel.
+
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -142,11 +146,26 @@ public class SearchReposFragment extends BaseFragment {
     private void displayMyRepos() {
         listMode = ListMode.REPOS;
         lastSearchQuery = null;
-        showLoading(true);
-        // Fragment chỉ cần yêu cầu ViewModel tải dữ liệu.
-        // ViewModel sẽ tự quyết định có cần gọi lại API hay không, giúp tránh
-        // việc tải lại dữ liệu không cần thiết khi xoay màn hình.
-        viewModel.loadMyRepos();
+
+        // KIỂM TRA TRƯỚC KHI TẢI
+        // Lấy dữ liệu hiện có từ LiveData trong ViewModel.
+        List<RepoDto> currentRepos = viewModel.getMyRepos().getValue();
+
+        if (currentRepos != null) {
+            // NẾU ĐÃ CÓ DỮ LIỆU:
+            // Chỉ cần cập nhật giao diện ngay lập tức mà không hiển thị loading.
+            adapter.submit(currentRepos);
+            if (currentRepos.isEmpty()) {
+                showEmpty("You don't have any repositories yet.");
+            } else {
+                showList(); // Ẩn vòng xoay và hiển thị danh sách.
+            }
+        } else {
+            // NẾU CHƯA CÓ DỮ LIỆU (lần tải đầu tiên):
+            // Hiển thị loading và yêu cầu ViewModel tải dữ liệu.
+            showLoading(true);
+            viewModel.loadMyRepos();
+        }
     }
 
     // Trả về tiêu đề cho sección dựa trên trạng thái hiện tại.
