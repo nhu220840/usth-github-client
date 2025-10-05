@@ -13,8 +13,12 @@ import com.usth.githubclient.R;
 import com.usth.githubclient.adapters.SearchReposListAdapter;
 import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
+import com.usth.githubclient.data.remote.dto.RepoDto;
 import com.usth.githubclient.data.remote.dto.SearchRepoResponseDto;
 import com.usth.githubclient.viewmodel.SearchReposViewModel;
+
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -128,8 +132,26 @@ public class SearchReposFragment extends BaseFragment {
     private void displayMyRepos() {
         listMode = ListMode.REPOS;
         lastSearchQuery = null;
-        showLoading(true);
-        viewModel.loadMyRepos();
+
+        // CHECK BEFORE LOADING
+        // Get the current data from the LiveData in the ViewModel.
+        List<RepoDto> currentRepos = viewModel.getMyRepos().getValue();
+
+        if (currentRepos != null) {
+            // IF DATA ALREADY EXISTS:
+            // Just update the UI immediately without showing the loading indicator.
+            adapter.submit(currentRepos);
+            if (currentRepos.isEmpty()) {
+                showEmpty("You don't have any repositories yet.");
+            } else {
+                showList(); // Hide the spinner and show the list.
+            }
+        } else {
+            // IF NO DATA EXISTS (first load):
+            // Show the loading indicator and request the ViewModel to load data.
+            showLoading(true);
+            viewModel.loadMyRepos();
+        }
     }
 
     @Nullable
