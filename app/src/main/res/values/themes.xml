@@ -6,6 +6,12 @@
 
     <style name="Theme.USTHGitHubClient" parent="Base.Theme.USTHGitHubClient" />
 
+    <style name="Theme.USTHGitHubClient.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background_gray</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.USTHGitHubClient</item>
+    </style>
+
     <style name="Theme.Transparent.NoActionBar" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>

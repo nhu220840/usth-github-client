@@ -3,9 +3,9 @@ package com.usth.githubclient.activities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
-import android.text.method.PasswordTransformationMethod;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -14,6 +14,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.usth.githubclient.R;
 import com.usth.githubclient.util.ThemeManager;
@@ -34,6 +35,7 @@ public class AuthenticationActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        SplashScreen.installSplashScreen(this);
         // Apply the saved theme before creating the view.
         int savedTheme = ThemeManager.getSavedThemeMode(this);
         ThemeManager.applyTheme(savedTheme);
