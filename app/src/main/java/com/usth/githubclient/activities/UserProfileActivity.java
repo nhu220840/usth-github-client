@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
 import com.usth.githubclient.R;
 import com.usth.githubclient.databinding.ActivityUserProfileBinding;
@@ -137,15 +138,18 @@ public class UserProfileActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        // Handle menu item selections.
         if (item.getItemId() == R.id.action_settings) {
-            // Switch to SettingsFragment when the settings button is pressed.
-            showSettingsFragment();
+            // Find the current fragment displayed in the container.
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.user_profile_fragment_container);
+            // Only show the SettingsFragment if it is not already being displayed.
+            // This prevents adding multiple SettingsFragments to the back stack.
+            if (!(currentFragment instanceof SettingsFragment)) {
+                showSettingsFragment();
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-
     /**
      * Replaces the current fragment with SettingsFragment.
      */

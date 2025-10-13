@@ -1,25 +1,23 @@
+// usth-github-client-develop/app/src/main/java/com/usth/githubclient/fragments/SearchUsersFragment.java
+
 package com.usth.githubclient.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.usth.githubclient.R;
 import com.usth.githubclient.adapters.SearchUsersListAdapter;
-import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
-import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
+import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.dto.UserDto;
+import com.usth.githubclient.viewmodel.SearchUserViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +31,11 @@ import retrofit2.Response;
  */
 public class SearchUsersFragment extends BaseFragment {
     private SearchUsersListAdapter adapter;
-    private final ApiClient apiClient = new ApiClient();
-    private GithubApiService apiService;
-    private final List<SearchUsersListAdapter.UserRow> cachedFollowers = new ArrayList<>();
-    private List<UserDto> lastFollowersResponse = new ArrayList<>();
-    private boolean hasLoadedFollowers;
-    private String authenticatedUsername;
+    private SearchUserViewModel viewModel; // Add ViewModel
     private String lastSearchQuery;
+    private GithubApiService apiService; // Keep for enriching details
 
     private enum ListMode { FOLLOWERS, SEARCH }
-
     private ListMode listMode = ListMode.FOLLOWERS;
 
     public static SearchUsersFragment newInstance() {
@@ -52,7 +45,9 @@ public class SearchUsersFragment extends BaseFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        apiService = apiClient.createService(GithubApiService.class);
+        // Initialize ViewModel
+        viewModel = new ViewModelProvider(this).get(SearchUserViewModel.class);
+        apiService = new ApiClient().createService(GithubApiService.class); // Keep for enriching
     }
 
     @Nullable
@@ -66,82 +61,61 @@ public class SearchUsersFragment extends BaseFragment {
         emptyView = v.findViewById(R.id.empty);
         sectionTitle = v.findViewById(R.id.section_title);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        recyclerView.addItemDecoration(
-                new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL));
+        setupRecyclerView();
 
-        adapter = new SearchUsersListAdapter();
-        recyclerView.setAdapter(adapter);
+        // Observe data from the ViewModel
+        observeViewModel();
 
-        displayFollowers();
+        // Load initial data
+        if (lastSearchQuery == null || lastSearchQuery.isEmpty()) {
+            displayFollowers();
+        }
+
         return v;
     }
 
+    private void observeViewModel() {
+        // Observe the list of followers
+        viewModel.getFollowers().observe(getViewLifecycleOwner(), followers -> {
+            if (listMode == ListMode.FOLLOWERS) {
+                updateUserList(followers);
+                if (followers.isEmpty()) {
+                    showEmpty(getString(R.string.followers_empty_state));
+                } else {
+                    showList();
+                }
+            }
+        });
+
+        // Observe search results
+        viewModel.getSearchResults().observe(getViewLifecycleOwner(), users -> {
+            if (listMode == ListMode.SEARCH) {
+                updateUserList(users);
+                if (users.isEmpty()) {
+                    showEmpty("No users match: " + lastSearchQuery);
+                } else {
+                    showList();
+                }
+            }
+        });
+
+        // Observe errors
+        viewModel.getError().observe(getViewLifecycleOwner(), errorMsg -> {
+            showEmpty(errorMsg);
+        });
+    }
+
     /** Public API for MainActivity */
-    public void submitQuery(String username) {
-        if (username == null || username.trim().isEmpty()) {
+    public void submitQuery(String query) {
+        if (query == null || query.trim().isEmpty()) {
             displayFollowers();
             return;
         }
-        if (apiService == null) {
-            showEmpty("Unable to initialize network client.");
-            return;
-        }
-        final String q = username.trim();
+        final String q = query.trim();
         listMode = ListMode.SEARCH;
         lastSearchQuery = q;
         showLoading(true);
-
-        // Call the search users API.
-        apiService
-                .searchUsers(q, 1, 30)
-                .enqueue(new Callback<SearchUsersResponseDto>() {
-                    @Override
-                    public void onResponse(Call<SearchUsersResponseDto> call,
-                                           Response<SearchUsersResponseDto> resp) {
-                        if (!isAdded()) return;
-                        if (listMode != ListMode.SEARCH
-                                || lastSearchQuery == null
-                                || !lastSearchQuery.equals(q)) {
-                            return;
-                        }
-                        showLoading(false);
-
-                        if (resp.isSuccessful() && resp.body() != null) {
-                            List<UserDto> items = resp.body().getItems();
-                            List<SearchUsersListAdapter.UserRow> ui = new ArrayList<>();
-                            if (items != null) {
-                                for (UserDto u : items) {
-                                    if (u == null || u.getLogin() == null || u.getAvatarUrl() == null) {
-                                        continue;
-                                    }
-                                    ui.add(new SearchUsersListAdapter.UserRow(u.getLogin(), u.getAvatarUrl()));
-                                }
-                            }
-                            adapter.submit(ui);
-
-                            if (ui.isEmpty()) showEmpty("No users match: " + q);
-                            else showList();
-
-                            enrichUserDetails(items);
-
-                        } else {
-                            showEmpty("Search failed: " + resp.code());
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<SearchUsersResponseDto> call, Throwable t) {
-                        if (!isAdded()) return;
-                        if (listMode != ListMode.SEARCH
-                                || lastSearchQuery == null
-                                || !lastSearchQuery.equals(q)) {
-                            return;
-                        }
-                        showLoading(false);
-                        showEmpty("Network error: " + t.getMessage());
-                    }
-                });
+        viewModel.searchUsers(q); // Call ViewModel to perform search
     }
 
     /** Public API used when the search query is cleared. */
@@ -152,109 +126,37 @@ public class SearchUsersFragment extends BaseFragment {
     private void displayFollowers() {
         listMode = ListMode.FOLLOWERS;
         lastSearchQuery = null;
-        if (apiService == null) {
-            showEmpty(getString(R.string.followers_load_failed));
-            return;
-        }
 
-        if (hasLoadedFollowers) {
-            adapter.submit(new ArrayList<>(cachedFollowers));
-            if (cachedFollowers.isEmpty()) {
+        // Check if data already exists in the ViewModel
+        List<UserDto> currentFollowers = viewModel.getFollowers().getValue();
+        if (currentFollowers != null) {
+            updateUserList(currentFollowers);
+            if(currentFollowers.isEmpty()) {
                 showEmpty(getString(R.string.followers_empty_state));
             } else {
                 showList();
-                enrichUserDetails(lastFollowersResponse);
             }
-            return;
-        }
-
-        showLoading(true);
-
-        if (authenticatedUsername != null && !authenticatedUsername.trim().isEmpty()) {
-            fetchFollowers(authenticatedUsername);
         } else {
-            apiService.authenticate().enqueue(new Callback<UserDto>() {
-                @Override
-                public void onResponse(Call<UserDto> call, Response<UserDto> resp) {
-                    if (!isAdded()) return;
-                    if (resp.isSuccessful() && resp.body() != null && resp.body().getLogin() != null) {
-                        authenticatedUsername = resp.body().getLogin();
-                        if (listMode == ListMode.FOLLOWERS) {
-                            fetchFollowers(authenticatedUsername);
-                        }
-                    } else if (listMode == ListMode.FOLLOWERS) {
-                        showLoading(false);
-                        showEmpty(getString(R.string.followers_load_failed));
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<UserDto> call, Throwable t) {
-                    if (!isAdded()) return;
-                    if (listMode == ListMode.FOLLOWERS) {
-                        showLoading(false);
-                        showEmpty(getString(R.string.followers_load_failed));
-                    }
-                }
-            });
+            showLoading(true);
+            viewModel.loadFollowers(); // Request ViewModel to load data
         }
     }
 
-    private void fetchFollowers(final String username) {
-        apiService.getFollowers(username, 30, 1).enqueue(new Callback<List<UserDto>>() {
-            @Override
-            public void onResponse(Call<List<UserDto>> call, Response<List<UserDto>> resp) {
-                if (!isAdded()) return;
-                boolean isFollowerMode = listMode == ListMode.FOLLOWERS;
-                if (isFollowerMode) {
-                    showLoading(false);
-                }
-
-                if (resp.isSuccessful() && resp.body() != null) {
-                    List<UserDto> items = resp.body();
-                    List<SearchUsersListAdapter.UserRow> ui = new ArrayList<>();
-                    List<UserDto> detailSource = new ArrayList<>();
-                    if (items != null) {
-                        for (UserDto u : items) {
-                            if (u == null || u.getLogin() == null || u.getAvatarUrl() == null) {
-                                continue;
-                            }
-                            ui.add(new SearchUsersListAdapter.UserRow(u.getLogin(), u.getAvatarUrl()));
-                            detailSource.add(u);
-                        }
-                    }
-
-                    cachedFollowers.clear();
-                    cachedFollowers.addAll(ui);
-                    lastFollowersResponse = detailSource;
-                    hasLoadedFollowers = true;
-
-                    if (isFollowerMode) {
-                        adapter.submit(new ArrayList<>(cachedFollowers));
-
-                        if (cachedFollowers.isEmpty()) {
-                            showEmpty(getString(R.string.followers_empty_state));
-                        } else {
-                            showList();
-                            enrichUserDetails(lastFollowersResponse);
-                        }
-                    }
-                } else if (isFollowerMode) {
-                    showEmpty(getString(R.string.followers_load_failed));
-                }
+    // New method to update the adapter
+    private void updateUserList(List<UserDto> users) {
+        if (users == null) return;
+        List<SearchUsersListAdapter.UserRow> uiRows = new ArrayList<>();
+        for (UserDto u : users) {
+            if (u != null && u.getLogin() != null && u.getAvatarUrl() != null) {
+                uiRows.add(new SearchUsersListAdapter.UserRow(u.getLogin(), u.getAvatarUrl()));
             }
-
-            @Override
-            public void onFailure(Call<List<UserDto>> call, Throwable t) {
-                if (!isAdded()) return;
-                if (listMode == ListMode.FOLLOWERS) {
-                    showLoading(false);
-                    showEmpty(getString(R.string.followers_load_failed));
-                }
-            }
-        });
+        }
+        adapter.submit(uiRows);
+        showList();
+        enrichUserDetails(users); // Still call enrich to get more details
     }
 
+    // Keep the enrichUserDetails method unchanged
     private void enrichUserDetails(List<UserDto> items) {
         if (apiService == null || items == null) {
             return;
