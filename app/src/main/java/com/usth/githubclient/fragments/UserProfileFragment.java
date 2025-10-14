@@ -1,7 +1,10 @@
 package com.usth.githubclient.fragments;
 
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -15,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.usth.githubclient.R;
@@ -39,6 +43,20 @@ public class UserProfileFragment extends Fragment {
 
     private FragmentUserProfileBinding binding;
     private UserViewModel viewModel;
+    private String currentUsername;
+    private int lastFetchedMonth = -1;
+    private int lastFetchedYear = -1;
+    private boolean isDateReceiverRegistered;
+
+    private final BroadcastReceiver dateChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (!isAdded()) {
+                return;
+            }
+            refreshContributionsForCurrentDate();
+        }
+    };
 
     /**
      * Creates a new instance of UserProfileFragment.
@@ -78,10 +96,28 @@ public class UserProfileFragment extends Fragment {
             }
         });
 
-        updateContributionsTitle();
+        updateContributionsTitle(Calendar.getInstance());
 
         String username = getArguments() == null ? null : getArguments().getString(ARG_USERNAME);
         viewModel.loadUserProfile(username);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        registerDateChangeReceiver();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshContributionsForCurrentDate();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        unregisterDateChangeReceiver();
     }
 
     /**
@@ -121,6 +157,10 @@ public class UserProfileFragment extends Fragment {
         binding.displayName.setText(displayName);
         binding.username.setText(getString(R.string.user_profile_username_format, profile.getUsername()));
 
+        currentUsername = profile.getUsername();
+        lastFetchedMonth = -1;
+        lastFetchedYear = -1;
+
         updateTextOrHide(binding.bio, profile.getBio().orElse(null));
 
         Glide.with(binding.avatar)
@@ -151,7 +191,7 @@ public class UserProfileFragment extends Fragment {
         }
 
         // Load contributions data
-        viewModel.loadContributions(profile.getUsername());
+        refreshContributionsForCurrentDate();
     }
 
     private void updateTextOrHide(@NonNull TextView view, @Nullable String value) {
@@ -187,17 +227,57 @@ public class UserProfileFragment extends Fragment {
         valueView.setOnClickListener(v -> openLink(preparedUrl));
     }
 
-    private void updateContributionsTitle() {
+    private void updateContributionsTitle(@NonNull Calendar calendar) {
         if (binding == null) {
             return;
         }
-        Calendar calendar = Calendar.getInstance();
         String monthName = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
         if (monthName == null) {
             monthName = "";
         }
         String title = getString(R.string.contributions_title_format, monthName, calendar.get(Calendar.YEAR));
         binding.contributionsTitle.setText(title);
+    }
+
+    private void refreshContributionsForCurrentDate() {
+        Calendar calendar = Calendar.getInstance();
+        updateContributionsTitle(calendar);
+
+        if (TextUtils.isEmpty(currentUsername)) {
+            return;
+        }
+
+        int month = calendar.get(Calendar.MONTH);
+        int year = calendar.get(Calendar.YEAR);
+
+        if (month == lastFetchedMonth && year == lastFetchedYear) {
+            return;
+        }
+
+        lastFetchedMonth = month;
+        lastFetchedYear = year;
+
+        viewModel.loadContributions(currentUsername);
+    }
+
+    private void registerDateChangeReceiver() {
+        if (isDateReceiverRegistered) {
+            return;
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_DATE_CHANGED);
+        filter.addAction(Intent.ACTION_TIME_CHANGED);
+        filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
+        ContextCompat.registerReceiver(requireContext(), dateChangeReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+        isDateReceiverRegistered = true;
+    }
+
+    private void unregisterDateChangeReceiver() {
+        if (!isDateReceiverRegistered) {
+            return;
+        }
+        requireContext().unregisterReceiver(dateChangeReceiver);
+        isDateReceiverRegistered = false;
     }
 
     @Nullable
