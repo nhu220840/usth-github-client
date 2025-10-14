@@ -1,15 +1,29 @@
-// usth-github-client-develop/app/src/main/java/com/usth/githubclient/viewmodel/SearchUserViewModel.java
-
 package com.usth.githubclient.viewmodel;
+
+import android.annotation.SuppressLint;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
 import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
+import com.usth.githubclient.data.remote.dto.EventDto;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
+import com.usth.githubclient.domain.model.ContributionDataEntry;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -23,15 +37,19 @@ public class SearchUserViewModel extends ViewModel {
     private final MutableLiveData<List<UserDto>> followers = new MutableLiveData<>();
     // LiveData to hold the user search results.
     private final MutableLiveData<List<UserDto>> searchResults = new MutableLiveData<>();
+    private final MutableLiveData<List<ContributionDataEntry>> contributions = new MutableLiveData<>();
+
     // LiveData for error reporting.
     private final MutableLiveData<String> error = new MutableLiveData<>();
 
     private final GithubApiService apiService;
+    private final ExecutorService executorService;
     private String authenticatedUsername;
     private boolean hasLoadedFollowers = false;
 
     public SearchUserViewModel() {
         this.apiService = new ApiClient().createService(GithubApiService.class);
+        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     // Getters for LiveData
@@ -41,6 +59,10 @@ public class SearchUserViewModel extends ViewModel {
 
     public LiveData<List<UserDto>> getSearchResults() {
         return searchResults;
+    }
+
+    public LiveData<List<ContributionDataEntry>> getContributions() {
+        return contributions;
     }
 
     public LiveData<String> getError() {
@@ -113,5 +135,45 @@ public class SearchUserViewModel extends ViewModel {
                 error.postValue("Network error: " + t.getMessage());
             }
         });
+    }
+
+    public void loadContributions(String username) {
+        executorService.execute(() -> {
+            try {
+                // Changed from userRepository to apiService
+                Response<List<EventDto>> response = apiService.getUserEvents(username, 1, 100).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    List<ContributionDataEntry> processedContributions = processEvents(response.body());
+                    contributions.postValue(processedContributions);
+                } else {
+                    error.postValue("Failed to load contributions.");
+                }
+            } catch (IOException e) {
+                error.postValue("Network error loading contributions: " + e.getMessage());
+            }
+        });
+    }
+
+    @SuppressLint("NewApi")
+    private List<ContributionDataEntry> processEvents(List<EventDto> events) {
+        Map<Integer, ContributionDataEntry> contributionsMap = new HashMap<>();
+        Calendar cal = Calendar.getInstance();
+
+        for (EventDto event : events) {
+            Instant instant = Instant.parse(event.getCreatedAt());
+            cal.setTime(Date.from(instant));
+            int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+
+            ContributionDataEntry entry = contributionsMap.get(dayOfMonth);
+            if (entry == null) {
+                Calendar dayCal = Calendar.getInstance();
+                dayCal.setTime(cal.getTime());
+                entry = new ContributionDataEntry(dayCal, 1);
+                contributionsMap.put(dayOfMonth, entry);
+            } else {
+                entry.incrementCount();
+            }
+        }
+        return new ArrayList<>(contributionsMap.values());
     }
 }

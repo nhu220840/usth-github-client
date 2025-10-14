@@ -1,5 +1,6 @@
 package com.usth.githubclient.data.remote;
 
+import com.usth.githubclient.data.remote.dto.EventDto;
 import com.usth.githubclient.data.remote.dto.RepoDto;
 import com.usth.githubclient.data.remote.dto.SearchRepoResponseDto;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
@@ -104,4 +105,12 @@ public interface GithubApiService {
     Call<Void> unstarRepo(
             @Path("owner") String owner,
             @Path("repo") String repo);
+
+    // Get user events.
+    @GET("users/{username}/events")
+    Call<List<EventDto>> getUserEvents(
+            @Path("username") String username,
+            @Query("page") int page,
+            @Query("per_page") int perPage
+    );
 }

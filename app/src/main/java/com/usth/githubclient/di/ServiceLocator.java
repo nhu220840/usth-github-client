@@ -9,6 +9,9 @@ import com.usth.githubclient.data.repository.UserRepositoryImpl;
 import com.usth.githubclient.domain.mapper.RepoMapper;
 import com.usth.githubclient.domain.mapper.UserMapper;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * A simple dependency container to make mapper & repository instances
  * available across the app without using a full DI framework.
@@ -23,13 +26,14 @@ public final class ServiceLocator {
     private final UserRepository userRepository;
     private final RepoRepository repoRepository;
     private final AuthRepository authRepository;
-
+    private final ExecutorService executorService; // Added ExecutorService
 
     private ServiceLocator() {
         // Initialize all dependencies.
         apiClient = new ApiClient();
         userMapper = new UserMapper();
         repoMapper = new RepoMapper(userMapper);
+        executorService = Executors.newSingleThreadExecutor(); // Initialize ExecutorService
 
         userRepository = new UserRepositoryImpl(apiClient);
         repoRepository = new RepoRepositoryImpl(apiClient);
@@ -49,6 +53,11 @@ public final class ServiceLocator {
             }
         }
         return instance;
+    }
+
+    // Added getter for ExecutorService
+    public ExecutorService getExecutorService() {
+        return executorService;
     }
 
     public ApiClient apiClient() {

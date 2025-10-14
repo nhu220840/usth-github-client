@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.usth.githubclient.R;
+import com.usth.githubclient.adapters.ContributionsListAdapter;
 import com.usth.githubclient.databinding.FragmentUserProfileBinding;
 import com.usth.githubclient.domain.model.GitHubUserProfileDataEntry;
 import com.usth.githubclient.viewmodel.UserViewModel;
@@ -68,6 +68,14 @@ public class UserProfileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(UserViewModel.class);
         viewModel.getUiState().observe(getViewLifecycleOwner(), this::renderState);
+
+        // Observer for contributions data
+        viewModel.getContributions().observe(getViewLifecycleOwner(), contributions -> {
+            if (contributions != null) {
+                ContributionsListAdapter adapter = new ContributionsListAdapter(requireContext(), contributions);
+                binding.contributionsGrid.setAdapter(adapter);
+            }
+        });
 
         String username = getArguments() == null ? null : getArguments().getString(ARG_USERNAME);
         viewModel.loadUserProfile(username);
@@ -138,6 +146,9 @@ public class UserProfileFragment extends Fragment {
             activity.getSupportActionBar().setSubtitle(
                     getString(R.string.user_profile_username_format, profile.getUsername()));
         }
+
+        // Load contributions data
+        viewModel.loadContributions(profile.getUsername());
     }
 
     private void updateTextOrHide(@NonNull TextView view, @Nullable String value) {

@@ -1,5 +1,6 @@
 package com.usth.githubclient.data.repository;
 
+import com.usth.githubclient.data.remote.dto.EventDto;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
 import java.util.List;
@@ -25,4 +26,7 @@ public interface UserRepository {
 
     // Search for users.
     Call<SearchUsersResponseDto> searchUsers(String query, int page, int perPage);
+
+    // Get user events.
+    Call<List<EventDto>> getUserEvents(String username, int page, int perPage);
 }

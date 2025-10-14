@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.usth.githubclient.data.remote.ApiClient;
 import com.usth.githubclient.data.remote.GithubApiService;
+import com.usth.githubclient.data.remote.dto.EventDto;
 import com.usth.githubclient.data.remote.dto.SearchUsersResponseDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
 
@@ -50,5 +51,10 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Call<SearchUsersResponseDto> searchUsers(String query, int page, int perPage) {
         return apiService().searchUsers(query, page, perPage);
+    }
+
+    @Override
+    public Call<List<EventDto>> getUserEvents(String username, int page, int perPage) {
+        return apiService().getUserEvents(username, page, perPage);
     }
 }

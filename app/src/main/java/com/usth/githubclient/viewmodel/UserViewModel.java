@@ -1,230 +1,138 @@
 package com.usth.githubclient.viewmodel;
 
+import android.annotation.SuppressLint;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.usth.githubclient.data.remote.ApiClient;
+import com.usth.githubclient.data.remote.dto.EventDto;
 import com.usth.githubclient.data.remote.dto.UserDto;
-import com.usth.githubclient.data.repository.AuthRepository;
 import com.usth.githubclient.data.repository.UserRepository;
-import com.usth.githubclient.data.repository.UserRepositoryImpl;
 import com.usth.githubclient.di.ServiceLocator;
 import com.usth.githubclient.domain.mapper.UserMapper;
+import com.usth.githubclient.domain.model.ContributionDataEntry;
 import com.usth.githubclient.domain.model.GitHubUserProfileDataEntry;
-import com.usth.githubclient.domain.model.UserSessionData;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import retrofit2.Response;
 
-// ViewModel for managing and providing user profile data to the UI.
 public class UserViewModel extends ViewModel {
 
-    // LiveData to hold the UI state.
-    private final MutableLiveData<UserUiState> uiState = new MutableLiveData<>(UserUiState.idle());
-    private final ExecutorService executorService;
-    private final AuthRepository authRepository;
     private final UserRepository userRepository;
+    private final ExecutorService executorService;
     private final UserMapper userMapper;
+    private final MutableLiveData<UserUiState> uiState = new MutableLiveData<>();
+    private final MutableLiveData<List<ContributionDataEntry>> contributions = new MutableLiveData<>();
 
-    private String currentUsername;
-    private boolean displayingAuthenticatedProfile;
-
-
-    private static final String GENERIC_ERROR_MESSAGE = "Unable to load this profile right now.";
-    private static final String AUTH_REQUIRED_ERROR_MESSAGE =
-            "Sign in with a personal access token to view your profile.";
-
-    // Default constructor using ServiceLocator for dependencies.
     public UserViewModel() {
-        this(ServiceLocator.getInstance().authRepository(), buildDefaultUserRepository(), ServiceLocator.getInstance().userMapper());
+        this.userRepository = ServiceLocator.getInstance().userRepository();
+        this.executorService = ServiceLocator.getInstance().getExecutorService();
+        this.userMapper = ServiceLocator.getInstance().userMapper();
     }
 
-    // Constructor for dependency injection.
-    public UserViewModel(@NonNull AuthRepository authRepository,
-                         @NonNull UserRepository userRepository,
-                         @NonNull UserMapper userMapper) {
-        this.authRepository = Objects.requireNonNull(authRepository, "authRepository == null");
-        this.userRepository = Objects.requireNonNull(userRepository, "userRepository == null");
-        this.userMapper = Objects.requireNonNull(userMapper, "userMapper == null");
-        this.executorService = Executors.newSingleThreadExecutor();
-    }
-
-    // Helper to create a default UserRepository instance.
-    private static UserRepository buildDefaultUserRepository() {
-        ApiClient apiClient = new ApiClient();
-        return new UserRepositoryImpl(apiClient);
-    }
-
-    // Exposes the UI state as LiveData to the UI.
     public LiveData<UserUiState> getUiState() {
         return uiState;
     }
 
-    // Loads a user profile. If username is null or empty, it loads the authenticated user's profile.
+    public LiveData<List<ContributionDataEntry>> getContributions() {
+        return contributions;
+    }
+
     public void loadUserProfile(@Nullable String username) {
-        String normalized = username == null ? "" : username.trim();
-        boolean viewingAuthenticatedUser = normalized.isEmpty();
-
-        // Avoid reloading if the same profile is already loaded.
-        if (viewingAuthenticatedUser) {
-            if (displayingAuthenticatedProfile && hasExistingProfile()) {
-                return;
-            }
-            if (tryLoadProfileFromSession()) {
-                return;
-            }
-        } else if (normalized.equalsIgnoreCase(currentUsername) && hasExistingProfile()) {
-            return;
-        }
-
-        displayingAuthenticatedProfile = viewingAuthenticatedUser;
-        currentUsername = viewingAuthenticatedUser ? null : normalized;
-        uiState.setValue(UserUiState.loading());
-
-        // Fetch data on a background thread.
-        final String requestedUsername = normalized;
+        uiState.postValue(new UserUiState(true, null, null));
         executorService.execute(() -> {
-            if (viewingAuthenticatedUser) {
-                fetchAuthenticatedProfile();
-            } else {
-                fetchUserProfileByUsername(requestedUsername);
+            try {
+                // Correctly fetch UserDto first
+                Response<UserDto> response = (username == null)
+                        ? userRepository.authenticate().execute()
+                        : userRepository.getUser(username).execute();
+
+                if (response.isSuccessful() && response.body() != null) {
+                    // Map UserDto to GitHubUserProfileDataEntry
+                    GitHubUserProfileDataEntry profile = userMapper.map(response.body());
+                    uiState.postValue(new UserUiState(false, null, profile));
+                } else {
+                    String error = "Error: " + response.code() + " " + response.message();
+                    uiState.postValue(new UserUiState(false, error, null));
+                }
+            } catch (IOException e) {
+                uiState.postValue(new UserUiState(false, "Network error", null));
             }
         });
     }
 
-    // Checks if there's already a profile in the current UI state.
-    private boolean hasExistingProfile() {
-        UserUiState state = uiState.getValue();
-        return state != null && state.getProfile() != null;
-    }
-
-    // Tries to load the user profile from the cached session data.
-    private boolean tryLoadProfileFromSession() {
-        UserSessionData session = authRepository.getCachedSession();
-        if (session == null) {
-            return false;
-        }
-        Optional<GitHubUserProfileDataEntry> profile = session.getUserProfile();
-        if (profile.isEmpty()) {
-            return false;
-        }
-        GitHubUserProfileDataEntry cachedProfile = profile.get();
-        currentUsername = cachedProfile.getUsername();
-        displayingAuthenticatedProfile = true;
-        uiState.setValue(UserUiState.success(cachedProfile));
-        return true;
-    }
-
-    // Fetches the profile of the currently authenticated user.
-    private void fetchAuthenticatedProfile() {
-        try {
-            Response<UserDto> response = userRepository.authenticate().execute();
-            if (response.isSuccessful() && response.body() != null) {
-                GitHubUserProfileDataEntry profile = userMapper.map(response.body());
-                currentUsername = profile.getUsername();
-                displayingAuthenticatedProfile = true;
-                uiState.postValue(UserUiState.success(profile));
-                return;
+    public void loadContributions(String username) {
+        executorService.execute(() -> {
+            try {
+                Response<List<EventDto>> response = userRepository.getUserEvents(username, 1, 100).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    List<ContributionDataEntry> processedContributions = processEvents(response.body());
+                    contributions.postValue(processedContributions);
+                } else {
+                    // Error loading contributions, can post to another LiveData if needed
+                }
+            } catch (IOException e) {
+                // Network error, can post to another LiveData if needed
             }
+        });
+    }
 
-            displayingAuthenticatedProfile = true;
-            if (response.code() == 401 || response.code() == 403) {
-                uiState.postValue(UserUiState.error(AUTH_REQUIRED_ERROR_MESSAGE));
+    @SuppressLint("NewApi")
+    private List<ContributionDataEntry> processEvents(List<EventDto> events) {
+        Map<Integer, ContributionDataEntry> contributionsMap = new HashMap<>();
+        Calendar cal = Calendar.getInstance();
+
+        for (EventDto event : events) {
+            // Make sure createdAt is not null to avoid NullPointerException
+            if (event.getCreatedAt() == null) continue;
+
+            Instant instant = Instant.parse(event.getCreatedAt());
+            cal.setTime(Date.from(instant));
+            int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+
+            ContributionDataEntry entry = contributionsMap.get(dayOfMonth);
+            if (entry == null) {
+                Calendar dayCal = Calendar.getInstance();
+                dayCal.setTime(cal.getTime());
+                entry = new ContributionDataEntry(dayCal, 1);
+                contributionsMap.put(dayOfMonth, entry);
             } else {
-                String errorMsg = "Unable to load this profile right now. (Code: " + response.code() + ")";
-                uiState.postValue(UserUiState.error(errorMsg));
+                entry.incrementCount();
             }
-        } catch (IOException exception) {
-            displayingAuthenticatedProfile = true;
-            String message = exception.getMessage();
-            if (message == null || message.trim().isEmpty()) {
-                message = GENERIC_ERROR_MESSAGE;
-            }
-            uiState.postValue(UserUiState.error(message));
         }
+        return new ArrayList<>(contributionsMap.values());
     }
 
-    // Fetches a user's profile by their username.
-    private void fetchUserProfileByUsername(@NonNull String username) {
-        try {
-            Response<UserDto> response = userRepository.getUser(username).execute();
-            if (response.isSuccessful() && response.body() != null) {
-                GitHubUserProfileDataEntry profile = userMapper.map(response.body());
-                currentUsername = profile.getUsername();
-                displayingAuthenticatedProfile = false;
-                uiState.postValue(UserUiState.success(profile));
-                return;
-            }
-
-            displayingAuthenticatedProfile = false;
-            String errorMsg = "Unable to load this profile right now. (Code: " + response.code() + ")";
-            uiState.postValue(UserUiState.error(errorMsg));
-        } catch (IOException exception) {
-            displayingAuthenticatedProfile = false;
-            String message = exception.getMessage();
-            if (message == null || message.trim().isEmpty()) {
-                message = GENERIC_ERROR_MESSAGE;
-            }
-            uiState.postValue(UserUiState.error(message));
-        }
-    }
-
-    // Retries the last failed profile load operation.
-    public void retry() {
-        if (displayingAuthenticatedProfile || currentUsername == null) {
-            loadUserProfile(null);
-        } else {
-            loadUserProfile(currentUsername);
-        }
-    }
-
-    // Cleans up resources when the ViewModel is destroyed.
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        executorService.shutdownNow();
-    }
-
-    // Represents the different states of the user profile UI.
-    public static final class UserUiState {
-        private final boolean loading;
-        private final GitHubUserProfileDataEntry profile;
+    public static class UserUiState {
+        private final boolean isLoading;
         private final String errorMessage;
+        private final GitHubUserProfileDataEntry profile;
 
-        private UserUiState(boolean loading,
-                            GitHubUserProfileDataEntry profile,
-                            String errorMessage) {
-            this.loading = loading;
-            this.profile = profile;
+        public UserUiState(boolean isLoading, @Nullable String errorMessage, @Nullable GitHubUserProfileDataEntry profile) {
+            this.isLoading = isLoading;
             this.errorMessage = errorMessage;
-        }
-
-        public static UserUiState idle() {
-            return new UserUiState(false, null, null);
-        }
-
-        public static UserUiState loading() {
-            return new UserUiState(true, null, null);
-        }
-
-        public static UserUiState success(@NonNull GitHubUserProfileDataEntry profile) {
-            return new UserUiState(false, Objects.requireNonNull(profile, "profile == null"), null);
-        }
-
-        public static UserUiState error(@NonNull String message) {
-            return new UserUiState(false, null, Objects.requireNonNull(message, "message == null"));
+            this.profile = profile;
         }
 
         public boolean isLoading() {
-            return loading;
+            return isLoading;
+        }
+
+        @Nullable
+        public String getErrorMessage() {
+            return errorMessage;
         }
 
         @Nullable
@@ -232,9 +140,29 @@ public class UserViewModel extends ViewModel {
             return profile;
         }
 
-        @Nullable
-        public String getErrorMessage() {
-            return errorMessage;
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            UserUiState that = (UserUiState) o;
+            return isLoading == that.isLoading &&
+                    Objects.equals(errorMessage, that.errorMessage) &&
+                    Objects.equals(profile, that.profile);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(isLoading, errorMessage, profile);
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return "UserUiState{" +
+                    "isLoading=" + isLoading +
+                    ", errorMessage='" + errorMessage + '\'' +
+                    ", profile=" + profile +
+                    '}';
         }
     }
 }

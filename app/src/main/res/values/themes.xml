@@ -14,6 +14,14 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
+    <style name="Widget.App.TextView.DayOfWeek" parent="Widget.Material3.TextView">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textAppearance">?attr/textAppearanceLabelSmall</item>
+    </style>
+
     <style name="ShapeAppearance.App.CircleImageView" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>

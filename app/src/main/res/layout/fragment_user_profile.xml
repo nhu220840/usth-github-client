@@ -150,8 +150,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginVertical="24dp"
-                android:background="@android:color/darker_gray"
-                android:alpha="0.2" />
+                android:alpha="0.2"
+                android:background="@android:color/darker_gray" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -385,6 +385,66 @@
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         tools:text="Feb 20, 2024" />
                 </LinearLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="16dp"
+                android:alpha="0.12"
+                android:background="@android:color/darker_gray" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/contributions_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Contributions this month"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:columnCount="7">
+
+                    <TextView
+                        style="@style/Widget.App.TextView.DayOfWeek"
+                        android:text="Sun"/>
+                    <TextView
+                        style="@style/Widget.App.TextView.DayOfWeek"
+                        android:text="Mon"/>
+                    <TextView
+                        style="@style/Widget.App.TextView.DayOfWeek"
+                        android:text="Tue"/>
+                    <TextView
+                        style="@style/Widget.App.TextView.DayOfWeek"
+                        android:text="Wed"/>
+                    <TextView
+                        style="@style/Widget.App.TextView.DayOfWeek"
+                        android:text="Thu"/>
+                    <TextView
+                        style="@style/Widget.App.TextView.DayOfWeek"
+                        android:text="Fri"/>
+                    <TextView
+                        style="@style/Widget.App.TextView.DayOfWeek"
+                        android:text="Sat"/>
+
+                </GridLayout>
+
+                <GridView
+                    android:id="@+id/contributions_grid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:horizontalSpacing="4dp"
+                    android:numColumns="7"
+                    android:verticalSpacing="4dp"
+                    tools:layout_height="240dp"/>
             </LinearLayout>
 
         </LinearLayout>
