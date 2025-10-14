@@ -6,33 +6,42 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
+
 import com.usth.githubclient.R;
 import com.usth.githubclient.domain.model.ContributionDataEntry;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class ContributionsListAdapter extends BaseAdapter {
 
     private final Context context;
     private final List<ContributionDataEntry> contributions;
     private final int daysInMonth;
-    private final int firstDayOfMonth;
+    private final int firstDayOfMonthOffset;
+    private final int today; // Biến để lưu ngày hôm nay
 
     public ContributionsListAdapter(Context context, List<ContributionDataEntry> contributions) {
         this.context = context;
         this.contributions = contributions != null ? contributions : new ArrayList<>();
+
         Calendar calendar = Calendar.getInstance();
+        this.today = calendar.get(Calendar.DAY_OF_MONTH); // Lấy ngày hiện tại
         this.daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
         calendar.set(Calendar.DAY_OF_MONTH, 1);
-        this.firstDayOfMonth = calendar.get(Calendar.DAY_OF_WEEK) - 1; // 0=Sunday, 1=Monday...
+        this.firstDayOfMonthOffset = calendar.get(Calendar.DAY_OF_WEEK) - 1;
     }
 
     @Override
     public int getCount() {
-        return daysInMonth + firstDayOfMonth;
+        return daysInMonth + firstDayOfMonthOffset;
     }
 
     @Override
@@ -47,45 +56,96 @@ public class ContributionsListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        View itemView;
+        ViewHolder holder;
+
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.contribution_grid_item, parent, false);
+            itemView = LayoutInflater.from(context).inflate(R.layout.contribution_grid_item, parent, false);
+            holder = new ViewHolder();
+            holder.container = (FrameLayout) itemView; // Lấy FrameLayout
+            holder.squareView = itemView.findViewById(R.id.contribution_square);
+            holder.dayText = itemView.findViewById(R.id.day_text);
+            itemView.setTag(holder);
+        } else {
+            itemView = convertView;
+            holder = (ViewHolder) itemView.getTag();
         }
 
-        TextView dayText = convertView.findViewById(R.id.day_text);
-
-        if (position < firstDayOfMonth) {
-            dayText.setText("");
-            convertView.setBackgroundColor(Color.TRANSPARENT);
+        if (position < firstDayOfMonthOffset) {
+            // Ô trống
+            holder.squareView.setBackgroundColor(Color.TRANSPARENT);
+            holder.dayText.setVisibility(View.INVISIBLE);
+            holder.container.setForeground(null); // Xóa viền
+            itemView.setClickable(false);
         } else {
-            int day = position - firstDayOfMonth + 1;
-            dayText.setText(String.valueOf(day));
+            holder.dayText.setVisibility(View.VISIBLE);
+            final int dayOfMonth = position - firstDayOfMonthOffset + 1;
+            holder.dayText.setText(String.valueOf(dayOfMonth));
 
             int contributionCount = 0;
+            ContributionDataEntry entryForDay = null;
+
             for (ContributionDataEntry entry : contributions) {
-                if (entry.getDate().get(Calendar.DAY_OF_MONTH) == day) {
+                if (entry.getDate().get(Calendar.DAY_OF_MONTH) == dayOfMonth) {
                     contributionCount = entry.getCount();
+                    entryForDay = entry;
                     break;
                 }
             }
 
             int color = getColorForContributions(contributionCount);
-            convertView.setBackgroundColor(color);
-        }
+            holder.squareView.setBackgroundColor(color);
 
-        return convertView;
+            // Chỉnh màu chữ
+            if (contributionCount == 0) {
+                holder.dayText.setTextColor(Color.parseColor("#C9D1D9"));
+            } else {
+                holder.dayText.setTextColor(Color.WHITE);
+            }
+
+            // Đánh dấu ngày hôm nay
+            if (dayOfMonth == today) {
+                holder.container.setForeground(ContextCompat.getDrawable(context, R.drawable.current_day_border));
+            } else {
+                holder.container.setForeground(null); // Xóa viền cho các ngày khác
+            }
+
+            final int finalContributionCount = contributionCount;
+            final ContributionDataEntry finalEntryForDay = entryForDay;
+            itemView.setOnClickListener(v -> {
+                String message;
+                if (finalContributionCount > 0 && finalEntryForDay != null) {
+                    Calendar date = finalEntryForDay.getDate();
+                    message = String.format(Locale.getDefault(), "%d contributions on %s",
+                            finalContributionCount,
+                            date.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.getDefault()) + " " + date.get(Calendar.DAY_OF_MONTH)
+                    );
+                } else {
+                    message = "No contributions on day " + dayOfMonth;
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+            });
+        }
+        return itemView;
     }
 
     private int getColorForContributions(int count) {
         if (count == 0) {
-            return Color.parseColor("#EBEDF0"); // Light Grey
-        } else if (count >= 1 && count <= 3) {
-            return Color.parseColor("#9BE9A8"); // Light Green
-        } else if (count >= 4 && count <= 6) {
-            return Color.parseColor("#40C463"); // Medium Green
-        } else if (count >= 7 && count <= 9) {
-            return Color.parseColor("#30A14E"); // Dark Green
+            return Color.parseColor("#30363D");
+        } else if (count >= 1 && count <= 2) {
+            return Color.parseColor("#0E4429");
+        } else if (count >= 3 && count <= 5) {
+            return Color.parseColor("#006D32");
+        } else if (count >= 6 && count <= 8) {
+            return Color.parseColor("#26A641");
         } else {
-            return Color.parseColor("#216E39"); // Darkest Green
+            return Color.parseColor("#39D353");
         }
+    }
+
+    static class ViewHolder {
+        FrameLayout container;
+        View squareView;
+        TextView dayText;
     }
 }

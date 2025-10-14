@@ -76,45 +76,87 @@ public class UserViewModel extends ViewModel {
     public void loadContributions(String username) {
         executorService.execute(() -> {
             try {
-                Response<List<EventDto>> response = userRepository.getUserEvents(username, 1, 100).execute();
-                if (response.isSuccessful() && response.body() != null) {
-                    List<ContributionDataEntry> processedContributions = processEvents(response.body());
+                List<EventDto> allEventsInMonth = new ArrayList<>();
+                int currentPage = 1;
+                boolean keepFetching = true;
+                int currentMonth = Calendar.getInstance().get(Calendar.MONTH);
+
+                while (keepFetching && currentPage <= 10) { // Giới hạn 10 trang để tránh vòng lặp vô tận
+                    Response<List<EventDto>> response = userRepository.getUserEvents(username, currentPage, 100).execute();
+
+                    if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                        for (EventDto event : response.body()) {
+                            if (event.getCreatedAt() == null) continue;
+
+                            Instant instant = Instant.parse(event.getCreatedAt());
+                            Calendar eventCal = Calendar.getInstance();
+                            eventCal.setTime(Date.from(instant));
+
+                            if (eventCal.get(Calendar.MONTH) == currentMonth) {
+                                allEventsInMonth.add(event);
+                            } else {
+                                // Đã gặp sự kiện của tháng trước, dừng lại
+                                keepFetching = false;
+                                break;
+                            }
+                        }
+                        currentPage++;
+                    } else {
+                        // Không còn dữ liệu hoặc có lỗi, dừng lại
+                        keepFetching = false;
+                    }
+                }
+
+                if (!allEventsInMonth.isEmpty()) {
+                    List<ContributionDataEntry> processedContributions = processEvents(allEventsInMonth);
                     contributions.postValue(processedContributions);
                 } else {
-                    // Error loading contributions, can post to another LiveData if needed
+                    // Post một danh sách rỗng nếu không có contribution nào trong tháng
+                    contributions.postValue(new ArrayList<>());
                 }
             } catch (IOException e) {
-                // Network error, can post to another LiveData if needed
+                contributions.postValue(new ArrayList<>()); // Post danh sách rỗng khi có lỗi mạng
             }
         });
     }
-
     @SuppressLint("NewApi")
     private List<ContributionDataEntry> processEvents(List<EventDto> events) {
         Map<Integer, ContributionDataEntry> contributionsMap = new HashMap<>();
         Calendar cal = Calendar.getInstance();
 
+        // Lấy tháng và năm hiện tại để làm mốc so sánh
+        int currentMonth = cal.get(Calendar.MONTH);
+        int currentYear = cal.get(Calendar.YEAR);
+
         for (EventDto event : events) {
-            // Make sure createdAt is not null to avoid NullPointerException
-            if (event.getCreatedAt() == null) continue;
+            if (event.getCreatedAt() == null) continue; // Bỏ qua nếu không có ngày tháng
 
             Instant instant = Instant.parse(event.getCreatedAt());
-            cal.setTime(Date.from(instant));
-            int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+            Date date = Date.from(instant);
 
-            ContributionDataEntry entry = contributionsMap.get(dayOfMonth);
-            if (entry == null) {
-                Calendar dayCal = Calendar.getInstance();
-                dayCal.setTime(cal.getTime());
-                entry = new ContributionDataEntry(dayCal, 1);
-                contributionsMap.put(dayOfMonth, entry);
-            } else {
-                entry.incrementCount();
+            Calendar eventCal = Calendar.getInstance();
+            eventCal.setTime(date);
+
+            int eventMonth = eventCal.get(Calendar.MONTH);
+            int eventYear = eventCal.get(Calendar.YEAR);
+
+            // Chỉ xử lý các sự kiện xảy ra trong tháng và năm hiện tại
+            if (eventMonth == currentMonth && eventYear == currentYear) {
+                int dayOfMonth = eventCal.get(Calendar.DAY_OF_MONTH);
+
+                ContributionDataEntry entry = contributionsMap.get(dayOfMonth);
+                if (entry == null) {
+                    Calendar dayCal = Calendar.getInstance();
+                    dayCal.setTime(eventCal.getTime());
+                    entry = new ContributionDataEntry(dayCal, 1);
+                    contributionsMap.put(dayOfMonth, entry);
+                } else {
+                    entry.incrementCount();
+                }
             }
         }
         return new ArrayList<>(contributionsMap.values());
     }
-
     public static class UserUiState {
         private final boolean isLoading;
         private final String errorMessage;

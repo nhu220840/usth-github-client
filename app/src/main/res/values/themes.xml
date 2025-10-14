@@ -14,7 +14,7 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
-    <style name="Widget.App.TextView.DayOfWeek" parent="Widget.Material3.TextView">
+    <style name="Widget.App.TextView.DayOfWeek" parent="Widget.MaterialComponents.TextView">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_columnWeight">1</item>
