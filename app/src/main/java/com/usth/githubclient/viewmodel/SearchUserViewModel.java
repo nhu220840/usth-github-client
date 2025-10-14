@@ -146,9 +146,11 @@ public class SearchUserViewModel extends ViewModel {
                     List<ContributionDataEntry> processedContributions = processEvents(response.body());
                     contributions.postValue(processedContributions);
                 } else {
+                    contributions.postValue(processEvents(new ArrayList<>()));
                     error.postValue("Failed to load contributions.");
                 }
             } catch (IOException e) {
+                contributions.postValue(processEvents(new ArrayList<>()));
                 error.postValue("Network error loading contributions: " + e.getMessage());
             }
         });
@@ -156,24 +158,53 @@ public class SearchUserViewModel extends ViewModel {
 
     @SuppressLint("NewApi")
     private List<ContributionDataEntry> processEvents(List<EventDto> events) {
-        Map<Integer, ContributionDataEntry> contributionsMap = new HashMap<>();
-        Calendar cal = Calendar.getInstance();
+        if (events == null) {
+            events = new ArrayList<>();
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        int currentMonth = calendar.get(Calendar.MONTH);
+        int currentYear = calendar.get(Calendar.YEAR);
+        int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        Map<Integer, ContributionDataEntry> contributionsByDay = new HashMap<>();
+        List<ContributionDataEntry> contributionsForMonth = new ArrayList<>(daysInMonth);
+
+        for (int day = 1; day <= daysInMonth; day++) {
+            Calendar dayCal = Calendar.getInstance();
+            dayCal.set(Calendar.YEAR, currentYear);
+            dayCal.set(Calendar.MONTH, currentMonth);
+            dayCal.set(Calendar.DAY_OF_MONTH, day);
+            dayCal.set(Calendar.HOUR_OF_DAY, 0);
+            dayCal.set(Calendar.MINUTE, 0);
+            dayCal.set(Calendar.SECOND, 0);
+            dayCal.set(Calendar.MILLISECOND, 0);
+
+            ContributionDataEntry emptyEntry = new ContributionDataEntry(dayCal, 0);
+            contributionsByDay.put(day, emptyEntry);
+            contributionsForMonth.add(emptyEntry);
+        }
 
         for (EventDto event : events) {
+            if (event.getCreatedAt() == null) {
+                continue;
+            }
             Instant instant = Instant.parse(event.getCreatedAt());
-            cal.setTime(Date.from(instant));
-            int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+                Date date = Date.from(instant);
 
-            ContributionDataEntry entry = contributionsMap.get(dayOfMonth);
-            if (entry == null) {
-                Calendar dayCal = Calendar.getInstance();
-                dayCal.setTime(cal.getTime());
-                entry = new ContributionDataEntry(dayCal, 1);
-                contributionsMap.put(dayOfMonth, entry);
-            } else {
+                Calendar eventCal = Calendar.getInstance();
+                eventCal.setTime(date);
+
+                if (eventCal.get(Calendar.MONTH) != currentMonth || eventCal.get(Calendar.YEAR) != currentYear) {
+                    continue;
+                }
+
+                int dayOfMonth = eventCal.get(Calendar.DAY_OF_MONTH);
+                ContributionDataEntry entry = contributionsByDay.get(dayOfMonth);
+                if (entry != null) {
                 entry.incrementCount();
             }
         }
-        return new ArrayList<>(contributionsMap.values());
+            return contributionsForMonth;
     }
 }

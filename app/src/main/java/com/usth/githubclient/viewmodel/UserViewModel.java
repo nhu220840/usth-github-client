@@ -107,56 +107,63 @@ public class UserViewModel extends ViewModel {
                     }
                 }
 
-                if (!allEventsInMonth.isEmpty()) {
-                    List<ContributionDataEntry> processedContributions = processEvents(allEventsInMonth);
-                    contributions.postValue(processedContributions);
-                } else {
-                    // Post một danh sách rỗng nếu không có contribution nào trong tháng
-                    contributions.postValue(new ArrayList<>());
-                }
+                List<ContributionDataEntry> processedContributions = processEvents(allEventsInMonth);
+                contributions.postValue(processedContributions);
             } catch (IOException e) {
-                contributions.postValue(new ArrayList<>()); // Post danh sách rỗng khi có lỗi mạng
+                contributions.postValue(processEvents(new ArrayList<>())); // Post tháng trống khi có lỗi mạng
             }
         });
     }
     @SuppressLint("NewApi")
     private List<ContributionDataEntry> processEvents(List<EventDto> events) {
-        Map<Integer, ContributionDataEntry> contributionsMap = new HashMap<>();
-        Calendar cal = Calendar.getInstance();
+        if (events == null) {
+            events = new ArrayList<>();
+        }
+        Calendar calendar = Calendar.getInstance();
+        int currentMonth = calendar.get(Calendar.MONTH);
+        int currentYear = calendar.get(Calendar.YEAR);
+        int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-        // Lấy tháng và năm hiện tại để làm mốc so sánh
-        int currentMonth = cal.get(Calendar.MONTH);
-        int currentYear = cal.get(Calendar.YEAR);
+        Map<Integer, ContributionDataEntry> contributionsByDay = new HashMap<>();
+        List<ContributionDataEntry> contributionsForMonth = new ArrayList<>(daysInMonth);
 
+        for (int day = 1; day <= daysInMonth; day++) {
+            Calendar dayCal = Calendar.getInstance();
+            dayCal.set(Calendar.YEAR, currentYear);
+            dayCal.set(Calendar.MONTH, currentMonth);
+            dayCal.set(Calendar.DAY_OF_MONTH, day);
+            dayCal.set(Calendar.HOUR_OF_DAY, 0);
+            dayCal.set(Calendar.MINUTE, 0);
+            dayCal.set(Calendar.SECOND, 0);
+            dayCal.set(Calendar.MILLISECOND, 0);
+
+            ContributionDataEntry emptyEntry = new ContributionDataEntry(dayCal, 0);
+            contributionsByDay.put(day, emptyEntry);
+            contributionsForMonth.add(emptyEntry);
+        }
         for (EventDto event : events) {
-            if (event.getCreatedAt() == null) continue; // Bỏ qua nếu không có ngày tháng
-
+            if (event.getCreatedAt() == null) {
+                continue;
+            }
             Instant instant = Instant.parse(event.getCreatedAt());
             Date date = Date.from(instant);
 
             Calendar eventCal = Calendar.getInstance();
             eventCal.setTime(date);
 
-            int eventMonth = eventCal.get(Calendar.MONTH);
-            int eventYear = eventCal.get(Calendar.YEAR);
+            if (eventCal.get(Calendar.MONTH) != currentMonth || eventCal.get(Calendar.YEAR) != currentYear) {
+                continue;
+            }
 
-            // Chỉ xử lý các sự kiện xảy ra trong tháng và năm hiện tại
-            if (eventMonth == currentMonth && eventYear == currentYear) {
-                int dayOfMonth = eventCal.get(Calendar.DAY_OF_MONTH);
-
-                ContributionDataEntry entry = contributionsMap.get(dayOfMonth);
-                if (entry == null) {
-                    Calendar dayCal = Calendar.getInstance();
-                    dayCal.setTime(eventCal.getTime());
-                    entry = new ContributionDataEntry(dayCal, 1);
-                    contributionsMap.put(dayOfMonth, entry);
-                } else {
-                    entry.incrementCount();
-                }
+            int dayOfMonth = eventCal.get(Calendar.DAY_OF_MONTH);
+            ContributionDataEntry entry = contributionsByDay.get(dayOfMonth);
+            if (entry != null) {
+                entry.incrementCount();
             }
         }
-        return new ArrayList<>(contributionsMap.values());
+        return contributionsForMonth;
     }
+
     public static class UserUiState {
         private final boolean isLoading;
         private final String errorMessage;

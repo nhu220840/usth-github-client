@@ -403,8 +403,8 @@
                     android:id="@+id/contributions_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Contributions this month"
-                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    tools:text="Contributions in October 2024" />
 
                 <GridLayout
                     android:layout_width="match_parent"
@@ -436,7 +436,7 @@
 
                 </GridLayout>
 
-                <GridView
+                <com.usth.githubclient.util.ExpandedHeightGridView
                     android:id="@+id/contributions_grid"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -25,6 +25,7 @@ import com.usth.githubclient.viewmodel.UserViewModel;
 
 import java.text.DateFormat;
 import java.time.Instant;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -76,6 +77,8 @@ public class UserProfileFragment extends Fragment {
                 binding.contributionsGrid.setAdapter(adapter);
             }
         });
+
+        updateContributionsTitle();
 
         String username = getArguments() == null ? null : getArguments().getString(ARG_USERNAME);
         viewModel.loadUserProfile(username);
@@ -182,6 +185,19 @@ public class UserProfileFragment extends Fragment {
         valueView.setText(value);
         String preparedUrl = prepareUrl(value);
         valueView.setOnClickListener(v -> openLink(preparedUrl));
+    }
+
+    private void updateContributionsTitle() {
+        if (binding == null) {
+            return;
+        }
+        Calendar calendar = Calendar.getInstance();
+        String monthName = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault());
+        if (monthName == null) {
+            monthName = "";
+        }
+        String title = getString(R.string.contributions_title_format, monthName, calendar.get(Calendar.YEAR));
+        binding.contributionsTitle.setText(title);
     }
 
     @Nullable

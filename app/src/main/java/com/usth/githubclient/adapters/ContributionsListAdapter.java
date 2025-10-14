@@ -17,31 +17,43 @@ import com.usth.githubclient.domain.model.ContributionDataEntry;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-
+import java.util.Map;
 public class ContributionsListAdapter extends BaseAdapter {
 
     private final Context context;
     private final List<ContributionDataEntry> contributions;
+    private final Map<Integer, ContributionDataEntry> contributionsByDay;
     private final int daysInMonth;
     private final int firstDayOfMonthOffset;
+    private final int totalCells;
     private final int today; // Biến để lưu ngày hôm nay
 
     public ContributionsListAdapter(Context context, List<ContributionDataEntry> contributions) {
         this.context = context;
         this.contributions = contributions != null ? contributions : new ArrayList<>();
+        this.contributionsByDay = new HashMap<>();
+
+        for (ContributionDataEntry entry : this.contributions) {
+            int day = entry.getDate().get(Calendar.DAY_OF_MONTH);
+            this.contributionsByDay.put(day, entry);
+        }
 
         Calendar calendar = Calendar.getInstance();
         this.today = calendar.get(Calendar.DAY_OF_MONTH); // Lấy ngày hiện tại
         this.daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         this.firstDayOfMonthOffset = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+        int computedCells = daysInMonth + firstDayOfMonthOffset;
+        int remainder = computedCells % 7;
+        this.totalCells = remainder == 0 ? computedCells : computedCells + (7 - remainder);
     }
 
     @Override
     public int getCount() {
-        return daysInMonth + firstDayOfMonthOffset;
+        return totalCells;
     }
 
     @Override
@@ -71,27 +83,20 @@ public class ContributionsListAdapter extends BaseAdapter {
             holder = (ViewHolder) itemView.getTag();
         }
 
-        if (position < firstDayOfMonthOffset) {
+        if (position < firstDayOfMonthOffset || position >= firstDayOfMonthOffset + daysInMonth) {
             // Ô trống
             holder.squareView.setBackgroundColor(Color.TRANSPARENT);
             holder.dayText.setVisibility(View.INVISIBLE);
             holder.container.setForeground(null); // Xóa viền
+            itemView.setOnClickListener(null);
             itemView.setClickable(false);
         } else {
             holder.dayText.setVisibility(View.VISIBLE);
             final int dayOfMonth = position - firstDayOfMonthOffset + 1;
             holder.dayText.setText(String.valueOf(dayOfMonth));
 
-            int contributionCount = 0;
-            ContributionDataEntry entryForDay = null;
-
-            for (ContributionDataEntry entry : contributions) {
-                if (entry.getDate().get(Calendar.DAY_OF_MONTH) == dayOfMonth) {
-                    contributionCount = entry.getCount();
-                    entryForDay = entry;
-                    break;
-                }
-            }
+            ContributionDataEntry entryForDay = contributionsByDay.get(dayOfMonth);
+            int contributionCount = entryForDay != null ? entryForDay.getCount() : 0;
 
             int color = getColorForContributions(contributionCount);
             holder.squareView.setBackgroundColor(color);
@@ -112,6 +117,7 @@ public class ContributionsListAdapter extends BaseAdapter {
 
             final int finalContributionCount = contributionCount;
             final ContributionDataEntry finalEntryForDay = entryForDay;
+            itemView.setClickable(true);
             itemView.setOnClickListener(v -> {
                 String message;
                 if (finalContributionCount > 0 && finalEntryForDay != null) {
@@ -131,7 +137,7 @@ public class ContributionsListAdapter extends BaseAdapter {
 
     private int getColorForContributions(int count) {
         if (count == 0) {
-            return Color.parseColor("#30363D");
+            return Color.parseColor("#161B22");
         } else if (count >= 1 && count <= 2) {
             return Color.parseColor("#0E4429");
         } else if (count >= 3 && count <= 5) {
