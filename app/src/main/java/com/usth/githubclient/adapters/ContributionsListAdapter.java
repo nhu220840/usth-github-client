@@ -1,6 +1,7 @@
 package com.usth.githubclient.adapters;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +31,8 @@ public class ContributionsListAdapter extends BaseAdapter {
     private final int firstDayOfMonthOffset;
     private final int totalCells;
     private final int today;
+    private final boolean isDarkMode;
+
 
     public ContributionsListAdapter(Context context, List<ContributionDataEntry> contributions) {
         this.context = context;
@@ -49,6 +52,9 @@ public class ContributionsListAdapter extends BaseAdapter {
         int computedCells = daysInMonth + firstDayOfMonthOffset;
         int remainder = computedCells % 7;
         this.totalCells = remainder == 0 ? computedCells : computedCells + (7 - remainder);
+
+        int nightModeFlags = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        this.isDarkMode = nightModeFlags == Configuration.UI_MODE_NIGHT_YES;
     }
 
     @Override
@@ -101,11 +107,20 @@ public class ContributionsListAdapter extends BaseAdapter {
             int color = getColorForContributions(contributionCount);
             holder.squareView.setBackgroundColor(color);
 
-            if (contributionCount == 0) {
-                holder.dayText.setTextColor(Color.parseColor("#C9D1D9"));
+            if (isDarkMode) {
+                if (contributionCount == 0) {
+                    holder.dayText.setTextColor(Color.parseColor("#C9D1D9"));
+                } else {
+                    holder.dayText.setTextColor(Color.WHITE);
+                }
             } else {
-                holder.dayText.setTextColor(Color.WHITE);
-            }
+                if (contributionCount == 0) {
+                    holder.dayText.setTextColor(Color.parseColor("#57606A"));
+                } else if (contributionCount <= 2) {
+                    holder.dayText.setTextColor(Color.parseColor("#0A3069"));
+                } else {
+                    holder.dayText.setTextColor(Color.WHITE);
+                }            }
 
             if (dayOfMonth == today) {
                 holder.container.setForeground(ContextCompat.getDrawable(context, R.drawable.current_day_border));
@@ -134,16 +149,30 @@ public class ContributionsListAdapter extends BaseAdapter {
     }
 
     private int getColorForContributions(int count) {
-        if (count == 0) {
-            return Color.parseColor("#161B22");
-        } else if (count >= 1 && count <= 2) {
-            return Color.parseColor("#0E4429");
-        } else if (count >= 3 && count <= 5) {
-            return Color.parseColor("#006D32");
-        } else if (count >= 6 && count <= 8) {
-            return Color.parseColor("#26A641");
+        if (isDarkMode) {
+            if (count == 0) {
+                return Color.parseColor("#161B22");
+            } else if (count >= 1 && count <= 2) {
+                return Color.parseColor("#0E4429");
+            } else if (count >= 3 && count <= 5) {
+                return Color.parseColor("#006D32");
+            } else if (count >= 6 && count <= 8) {
+                return Color.parseColor("#26A641");
+            } else {
+                return Color.parseColor("#39D353");
+            }
         } else {
-            return Color.parseColor("#39D353");
+            if (count == 0) {
+                return Color.parseColor("#D8DEE4");
+            } else if (count >= 1 && count <= 2) {
+                return Color.parseColor("#9CC7FF");
+            } else if (count >= 3 && count <= 5) {
+                return Color.parseColor("#58A6FF");
+            } else if (count >= 6 && count <= 8) {
+                return Color.parseColor("#1F6FEB");
+            } else {
+                return Color.parseColor("#0A3069");
+            }
         }
     }
 
