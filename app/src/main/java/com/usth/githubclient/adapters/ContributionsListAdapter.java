@@ -29,7 +29,7 @@ public class ContributionsListAdapter extends BaseAdapter {
     private final int daysInMonth;
     private final int firstDayOfMonthOffset;
     private final int totalCells;
-    private final int today; // Biến để lưu ngày hôm nay
+    private final int today;
 
     public ContributionsListAdapter(Context context, List<ContributionDataEntry> contributions) {
         this.context = context;
@@ -42,7 +42,7 @@ public class ContributionsListAdapter extends BaseAdapter {
         }
 
         Calendar calendar = Calendar.getInstance();
-        this.today = calendar.get(Calendar.DAY_OF_MONTH); // Lấy ngày hiện tại
+        this.today = calendar.get(Calendar.DAY_OF_MONTH);
         this.daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         this.firstDayOfMonthOffset = calendar.get(Calendar.DAY_OF_WEEK) - 1;
@@ -74,7 +74,7 @@ public class ContributionsListAdapter extends BaseAdapter {
         if (convertView == null) {
             itemView = LayoutInflater.from(context).inflate(R.layout.contribution_grid_item, parent, false);
             holder = new ViewHolder();
-            holder.container = (FrameLayout) itemView; // Lấy FrameLayout
+            holder.container = (FrameLayout) itemView;
             holder.squareView = itemView.findViewById(R.id.contribution_square);
             holder.dayText = itemView.findViewById(R.id.day_text);
             itemView.setTag(holder);
@@ -87,7 +87,7 @@ public class ContributionsListAdapter extends BaseAdapter {
             // Ô trống
             holder.squareView.setBackgroundColor(Color.TRANSPARENT);
             holder.dayText.setVisibility(View.INVISIBLE);
-            holder.container.setForeground(null); // Xóa viền
+            holder.container.setForeground(null);
             itemView.setOnClickListener(null);
             itemView.setClickable(false);
         } else {
@@ -101,18 +101,16 @@ public class ContributionsListAdapter extends BaseAdapter {
             int color = getColorForContributions(contributionCount);
             holder.squareView.setBackgroundColor(color);
 
-            // Chỉnh màu chữ
             if (contributionCount == 0) {
                 holder.dayText.setTextColor(Color.parseColor("#C9D1D9"));
             } else {
                 holder.dayText.setTextColor(Color.WHITE);
             }
 
-            // Đánh dấu ngày hôm nay
             if (dayOfMonth == today) {
                 holder.container.setForeground(ContextCompat.getDrawable(context, R.drawable.current_day_border));
             } else {
-                holder.container.setForeground(null); // Xóa viền cho các ngày khác
+                holder.container.setForeground(null);
             }
 
             final int finalContributionCount = contributionCount;
