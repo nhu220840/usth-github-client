@@ -74,9 +74,9 @@ public class AuthViewModel extends AndroidViewModel {
                 String login = me != null ? me.getLogin() : null;
                 String publicEmail = me != null ? me.getEmail() : null;
 
-                // 2) If no identifier is required, sign in is successful.
+                // 2) If no identifier is required, sign in is disrupted.
                 if (identifier == null || identifier.trim().isEmpty()) {
-                    persistTokenAndSignIn(apiClient, pat, login);
+                    ui.postValue(AuthUiState.error("Please enter an username or email"));
                     return;
                 }
 
