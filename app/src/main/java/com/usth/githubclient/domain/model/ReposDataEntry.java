@@ -76,65 +76,6 @@ public final class ReposDataEntry {
         return name;
     }
 
-    public Optional<String> getFullName() {
-        return Optional.ofNullable(fullName);
-    }
-
-    public Optional<String> getDescription() {
-        return Optional.ofNullable(description);
-    }
-
-    public Optional<String> getLanguage() {
-        return Optional.ofNullable(language);
-    }
-
-    public int getStargazersCount() {
-        return stargazersCount;
-    }
-
-    public int getForksCount() {
-        return forksCount;
-    }
-
-    public int getWatchersCount() {
-        return watchersCount;
-    }
-
-    public int getOpenIssuesCount() {
-        return openIssuesCount;
-    }
-
-    public String getHtmlUrl() {
-        return htmlUrl;
-    }
-
-    public Optional<String> getDefaultBranch() {
-        return Optional.ofNullable(defaultBranch);
-    }
-
-    public boolean isPrivate() {
-        return isPrivate;
-    }
-
-    public boolean isFork() {
-        return isFork;
-    }
-
-    public Optional<Instant> getCreatedAt() {
-        return Optional.ofNullable(createdAt);
-    }
-
-    public Optional<Instant> getUpdatedAt() {
-        return Optional.ofNullable(updatedAt);
-    }
-
-    public Optional<Instant> getPushedAt() {
-        return Optional.ofNullable(pushedAt);
-    }
-
-    public Optional<GitHubUserProfileDataEntry> getOwner() {
-        return Optional.ofNullable(owner);
-    }
 
     @Override
     public boolean equals(Object o) {

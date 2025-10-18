@@ -90,7 +90,6 @@ public class ContributionsListAdapter extends BaseAdapter {
         }
 
         if (position < firstDayOfMonthOffset || position >= firstDayOfMonthOffset + daysInMonth) {
-            // Ô trống
             holder.squareView.setBackgroundColor(Color.TRANSPARENT);
             holder.dayText.setVisibility(View.INVISIBLE);
             holder.container.setForeground(null);

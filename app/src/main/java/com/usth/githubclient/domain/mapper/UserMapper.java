@@ -118,20 +118,4 @@ public final class UserMapper {
             return null;
         }
     }
-
-    /**
-     * Maps a list of UserDtos to a list of GitHubUserProfileDataEntrys.
-     * @param dtoList The list of UserDtos to map.
-     * @return The mapped list of GitHubUserProfileDataEntrys.
-     */
-    public List<GitHubUserProfileDataEntry> mapList(List<UserDto> dtoList) {
-        List<GitHubUserProfileDataEntry> result = new ArrayList<>();
-        if (dtoList != null) {
-            for (UserDto dto : dtoList) {
-                GitHubUserProfileDataEntry entry = map(dto);
-                if (entry != null) result.add(entry);
-            }
-        }
-        return result;
-    }
 }

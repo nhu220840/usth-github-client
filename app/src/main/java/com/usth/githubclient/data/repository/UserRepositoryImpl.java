@@ -34,11 +34,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Call<List<UserDto>> getFollowers(String username, int perPage, int page) {
-        return apiService().getFollowers(username, perPage, page);
-    }
-
-    @Override
     public Call<UserDto> authenticate() {
         return apiService().authenticate();
     }
