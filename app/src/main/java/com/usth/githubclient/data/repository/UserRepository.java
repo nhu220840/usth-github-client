@@ -18,14 +18,8 @@ public interface UserRepository {
     // Get a user's followers.
     Call<List<UserDto>> getFollowers(String username, int perPage, int page);
 
-    // Get a user's following list.
-    Call<List<UserDto>> getFollowing(String username, int perPage, int page);
-
     // Authenticate the user.
     Call<UserDto> authenticate();
-
-    // Search for users.
-    Call<SearchUsersResponseDto> searchUsers(String query, int page, int perPage);
 
     // Get user events.
     Call<List<EventDto>> getUserEvents(String username, int page, int perPage);

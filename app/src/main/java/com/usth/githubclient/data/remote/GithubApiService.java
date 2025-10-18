@@ -33,30 +33,6 @@ public interface GithubApiService {
             @Query("page") int page
     );
 
-    // Get a user's following list.
-    @GET("users/{username}/following")
-    Call<List<UserDto>> getFollowing(
-            @Path("username") String username,
-            @Query("per_page") int perPage,
-            @Query("page") int page
-    );
-
-    // Get a user's repositories.
-    @GET("users/{username}/repos")
-    Call<List<RepoDto>> getUserRepositories(
-            @Path("username") String username,
-            @Query("per_page") int perPage,
-            @Query("page") int page,
-            @Query("sort") String sort
-    );
-
-    // Get a specific repository.
-    @GET("repos/{owner}/{repo}")
-    Call<RepoDto> getRepository(
-            @Path("owner") String owner,
-            @Path("repo") String repo
-    );
-
     // Authenticate the user.
     @GET("user")
     Call<UserDto> authenticate();
