@@ -51,39 +51,6 @@ public final class AuthRepository {
     }
 
     /**
-     * Authenticates the user with a personal access token.
-     * @param personalAccessToken The personal access token.
-     * @return The user session data.
-     * @throws IOException If a network error occurs.
-     */
-    @SuppressLint("NewApi")
-    public UserSessionData authenticate(String personalAccessToken) throws IOException {
-        if (personalAccessToken == null || personalAccessToken.isEmpty()) {
-            throw new IllegalArgumentException("personalAccessToken cannot be null or empty");
-        }
-
-        // 1. Create a new service with the provided token to ensure the request has the auth header.
-        apiClient.setAuthToken(personalAccessToken);
-
-        // 2. Use the new service to call the API.
-        GitHubUserProfileDataEntry profile = fetchAuthenticatedUser();
-        List<ReposDataEntry> repositories = fetchAuthenticatedRepositories();
-
-        // Cache the session data.
-        cachedSession = UserSessionData.builder(profile.getUsername(), personalAccessToken)
-                .tokenType("Bearer")
-                .userProfile(profile)
-                .repositories(repositories)
-                .lastSyncedAt(Instant.now())
-                .build();
-
-        // After successful authentication, set the token in the shared ApiClient for other repositories to use.
-        apiClient.setAuthToken(personalAccessToken);
-
-        return cachedSession;
-    }
-
-    /**
      * Signs out the user and clears the session data.
      */
     public void signOut() {

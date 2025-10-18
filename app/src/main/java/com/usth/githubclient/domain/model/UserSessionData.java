@@ -44,38 +44,38 @@ public final class UserSessionData {
      * Creates a builder from the current instance.
      * @return A new builder pre-populated with data from this instance.
      */
-    public Builder toBuilder() {
-        return new Builder(this);
-    }
+//    public Builder toBuilder() {
+//        return new Builder(this);
+//    }
 
     // Getters for all fields, using Optional for nullable fields.
     public String getUsername() {
         return username;
     }
 
-    public String getAccessToken() {
-        return accessToken;
-    }
+//    public String getAccessToken() {
+//        return accessToken;
+//    }
 
-    public Optional<String> getTokenType() {
-        return Optional.ofNullable(tokenType);
-    }
+//    public Optional<String> getTokenType() {
+//        return Optional.ofNullable(tokenType);
+//    }
 
-    public Optional<Instant> getAccessTokenExpiration() {
-        return Optional.ofNullable(accessTokenExpiration);
-    }
+//    public Optional<Instant> getAccessTokenExpiration() {
+//        return Optional.ofNullable(accessTokenExpiration);
+//    }
 
-    public Optional<GitHubUserProfileDataEntry> getUserProfile() {
-        return Optional.ofNullable(userProfile);
-    }
+//    public Optional<GitHubUserProfileDataEntry> getUserProfile() {
+//        return Optional.ofNullable(userProfile);
+//    }
 
     public List<ReposDataEntry> getRepositories() {
         return repositories;
     }
 
-    public Optional<Instant> getLastSyncedAt() {
-        return Optional.ofNullable(lastSyncedAt);
-    }
+//    public Optional<Instant> getLastSyncedAt() {
+//        return Optional.ofNullable(lastSyncedAt);
+//    }
 
     /**
      * Returns {@code true} if the access token is expired.
@@ -88,9 +88,9 @@ public final class UserSessionData {
     /**
      * Returns {@code true} if the access token is valid.
      */
-    public boolean hasValidToken(Instant moment) {
-        return !accessToken.isEmpty() && !isTokenExpired(moment);
-    }
+//    public boolean hasValidToken(Instant moment) {
+//        return !accessToken.isEmpty() && !isTokenExpired(moment);
+//    }
 
     @Override
     public boolean equals(Object o) {
@@ -164,30 +164,30 @@ public final class UserSessionData {
             this.lastSyncedAt = sessionData.lastSyncedAt;
         }
 
-        public Builder tokenType(String tokenType) {
-            this.tokenType = tokenType;
-            return this;
-        }
-
-        public Builder accessTokenExpiration(Instant accessTokenExpiration) {
-            this.accessTokenExpiration = accessTokenExpiration;
-            return this;
-        }
-
-        public Builder userProfile(GitHubUserProfileDataEntry userProfile) {
-            this.userProfile = userProfile;
-            return this;
-        }
-
-        public Builder repositories(List<ReposDataEntry> repositories) {
-            this.repositories = repositories == null ? Collections.emptyList() : repositories;
-            return this;
-        }
-
-        public Builder lastSyncedAt(Instant lastSyncedAt) {
-            this.lastSyncedAt = lastSyncedAt;
-            return this;
-        }
+//        public Builder tokenType(String tokenType) {
+//            this.tokenType = tokenType;
+//            return this;
+//        }
+//
+//        public Builder accessTokenExpiration(Instant accessTokenExpiration) {
+//            this.accessTokenExpiration = accessTokenExpiration;
+//            return this;
+//        }
+//
+//        public Builder userProfile(GitHubUserProfileDataEntry userProfile) {
+//            this.userProfile = userProfile;
+//            return this;
+//        }
+//
+//        public Builder repositories(List<ReposDataEntry> repositories) {
+//            this.repositories = repositories == null ? Collections.emptyList() : repositories;
+//            return this;
+//        }
+//
+//        public Builder lastSyncedAt(Instant lastSyncedAt) {
+//            this.lastSyncedAt = lastSyncedAt;
+//            return this;
+//        }
 
         public UserSessionData build() {
             if (repositories == null) {
