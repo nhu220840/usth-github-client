@@ -81,7 +81,7 @@ public class UserViewModel extends ViewModel {
                 boolean keepFetching = true;
                 int currentMonth = Calendar.getInstance().get(Calendar.MONTH);
 
-                while (keepFetching && currentPage <= 10) { // Giới hạn 10 trang để tránh vòng lặp vô tận
+                while (keepFetching && currentPage <= 10) {
                     Response<List<EventDto>> response = userRepository.getUserEvents(username, currentPage, 100).execute();
 
                     if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
@@ -95,14 +95,12 @@ public class UserViewModel extends ViewModel {
                             if (eventCal.get(Calendar.MONTH) == currentMonth) {
                                 allEventsInMonth.add(event);
                             } else {
-                                // Đã gặp sự kiện của tháng trước, dừng lại
                                 keepFetching = false;
                                 break;
                             }
                         }
                         currentPage++;
                     } else {
-                        // Không còn dữ liệu hoặc có lỗi, dừng lại
                         keepFetching = false;
                     }
                 }
@@ -110,7 +108,7 @@ public class UserViewModel extends ViewModel {
                 List<ContributionDataEntry> processedContributions = processEvents(allEventsInMonth);
                 contributions.postValue(processedContributions);
             } catch (IOException e) {
-                contributions.postValue(processEvents(new ArrayList<>())); // Post tháng trống khi có lỗi mạng
+                contributions.postValue(processEvents(new ArrayList<>()));
             }
         });
     }
