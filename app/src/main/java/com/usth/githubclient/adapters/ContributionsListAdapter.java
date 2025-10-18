@@ -119,7 +119,8 @@ public class ContributionsListAdapter extends BaseAdapter {
                     holder.dayText.setTextColor(Color.parseColor("#0A3069"));
                 } else {
                     holder.dayText.setTextColor(Color.WHITE);
-                }            }
+                }
+            }
 
             if (dayOfMonth == today) {
                 holder.container.setForeground(ContextCompat.getDrawable(context, R.drawable.current_day_border));
