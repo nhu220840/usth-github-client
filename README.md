@@ -88,4 +88,15 @@ Follow these steps to set up and build the project in **Android Studio**.
 
 ---
 
-This markdown describes the architecture, features, and setup process of the **USTH GitHub Client** Android application.
+## License
+
+MIT License © Nhu Do Nguyen Gia
+
+---
+
+## Contact
+
+For questions or contributions, please open an issue or contact:
+
+- 📧 Email: [gianhuw.work@gmail.com](mailto:gianhuw.work@gmail.com)
+- 💻 GitHub: [nhu220840](https://github.com/nhu220840)
