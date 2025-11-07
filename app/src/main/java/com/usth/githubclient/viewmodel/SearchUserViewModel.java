@@ -122,6 +122,8 @@ public class SearchUserViewModel extends ViewModel {
     public void searchUsers(String query) {
         apiService.searchUsers(query, 1, 30).enqueue(new Callback<SearchUsersResponseDto>() {
             @Override
+
+
             public void onResponse(Call<SearchUsersResponseDto> call, Response<SearchUsersResponseDto> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     searchResults.postValue(response.body().getItems());
