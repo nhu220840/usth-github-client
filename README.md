@@ -90,7 +90,7 @@ Follow these steps to set up and build the project in **Android Studio**.
 
 ## License
 
-MIT License © Nhu Do Nguyen Gia
+MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
